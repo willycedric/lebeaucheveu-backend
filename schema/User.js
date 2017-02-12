@@ -7,7 +7,8 @@ exports = module.exports = function(app, mongoose) {
     email: { type: String, unique: true },
     roles: {
       admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
-      account: { type: mongoose.Schema.Types.ObjectId, ref: 'Account' }
+      account: { type: mongoose.Schema.Types.ObjectId, ref: 'Account' },
+      hairdresser:{ type: mongoose.Schema.Types.ObjectId, ref: 'Hairdresser' }
     },
     isActive: String,
     timeCreated: { type: Date, default: Date.now },
@@ -20,12 +21,22 @@ exports = module.exports = function(app, mongoose) {
     tumblr: {},
     search: [String]
   });
-  userSchema.methods.isVerified = function(done){
+  userSchema.methods.isAccountVerified = function(done){
     this.populate('roles.account', function(err, user){
       if(err){
         return done(err);
       }
       var flag = user.roles.account && user.roles.account.isVerified && user.roles.account.isVerified === 'yes';
+      return done(null, flag);
+    });
+  };
+
+  userSchema.methods.isHairdresserVerified = function(done){
+    this.populate('roles.hairdresser', function(err, user){
+      if(err){
+        return done(err);
+      }
+      var flag = user.roles.hairdresser && user.roles.hairdresser.isVerified && user.roles.hairdresser.isVerified === 'yes';
       return done(null, flag);
     });
   };
@@ -35,6 +46,9 @@ exports = module.exports = function(app, mongoose) {
     }
 
     if (role === "account" && this.roles.account) {
+      return true;
+    }
+    if(role ==="hairdresser" && this.roles.hairdresser){
       return true;
     }
 
@@ -48,6 +62,9 @@ exports = module.exports = function(app, mongoose) {
 
     if (this.canPlayRoleOf('admin')) {
       returnUrl = '/admin';
+    }
+    if(this.canPlayRoleOf('hairdresser')){
+      returnUrl ='/hairdresser';
     }
 
     return returnUrl;

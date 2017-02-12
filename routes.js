@@ -3,9 +3,11 @@
 var preAuth = require('./service/pre-auth');
 var security = require('./service/security');
 var account = require('./service/account');
+var hairdresser = require('./service/hairdresser');
 var admin = require('./service/admin/admin');
 var adminUser = require('./service/admin/user');
 var adminAccount = require('./service/admin/account');
+var adminHairdresser = require('./service/admin/hairdresser');
 var adminAdministrator = require('./service/admin/administrator');
 var adminGroup = require('./service/admin/admin-group');
 var adminStatus = require('./service/admin/status');
@@ -26,17 +28,41 @@ function apiEnsureAuthenticated(req, res, next){
 }
 
 function apiEnsureAccount(req, res, next){
+  console.log('apiEnsureAccount  is called');
   if(req.user.canPlayRoleOf('account')){
+    return next();
+  }
+  res.status(401).send({errors: ['authorization required']});
+}
+function apiEnsureHairdresser(req, res, next){
+  if(req.user.canPlayRoleOf('hairdresser')){
     return next();
   }
   res.status(401).send({errors: ['authorization required']});
 }
 
 function apiEnsureVerifiedAccount(req, res, next){
+  console.log('apiEnsureVerifiedAccount  function is called ');
   if(!req.app.config.requireAccountVerification){
     return next();
   }
-  req.user.isVerified(function(err, flag){
+  req.user.isAccountVerified(function(err, flag){
+    if(err){
+      return next(err);
+    }
+    if(flag){
+      return next();
+    }else{
+      return res.status(401).send({errors: ['verification required']});
+    }
+  });
+}
+
+function apiEnsureVerifiedHairdresser(req, res, next){
+  if(!req.app.config.requireAccountVerification){
+    return next();
+  }
+  req.user.isHairdresserVerified(function(err, flag){
     if(err){
       return next(err);
     }
@@ -67,16 +93,13 @@ exports = module.exports = function(app, passport) {
   app.get('/api/login/google/callback', security.loginGoogle);
   app.post('/api/logout', security.logout);
 
-  //-----authentication required api-----
+  //-----authentication Account required api-----
   app.all('/api/account*', apiEnsureAuthenticated);
   app.all('/api/account*', apiEnsureAccount);
-
   app.get('/api/account/verification', account.upsertVerification);
   app.post('/api/account/verification', account.resendVerification);
   app.get('/api/account/verification/:token/', account.verify);
-
   app.all('/api/account/settings*', apiEnsureVerifiedAccount);
-
   app.get('/api/account/settings', account.getAccountDetails);
   app.put('/api/account/settings', account.update);
   app.put('/api/account/settings/identity', account.identity);
@@ -85,6 +108,24 @@ exports = module.exports = function(app, passport) {
   app.get('/api/account/settings/google/disconnect', account.disconnectGoogle);
   app.get('/api/account/settings/facebook/callback', account.connectFacebook);
   app.get('/api/account/settings/facebook/disconnect', account.disconnectFacebook);
+
+
+//----------authentication Hairdresser required api ------------------
+
+  app.all('/api/hairdresser*', apiEnsureAuthenticated);
+  app.all('/api/hairdresser*', apiEnsureHairdresser);
+  app.get('/api/hairdresser/verification', hairdresser.upsertVerification);
+  app.post('/api/hairdresser/verification', hairdresser.resendVerification);
+  app.get('/api/hairdresser/verification/:token/', hairdresser.verify);
+  app.all('/api/hairdresser/settings*',apiEnsureVerifiedHairdresser);
+  app.get('/api/hairdresser/settings', hairdresser.getAccountDetails);
+  app.put('/api/hairdresser/settings', hairdresser.update);
+  app.put('/api/hairdresser/settings/identity', hairdresser.identity);
+  app.put('/api/hairdresser/settings/password', hairdresser.password);
+  app.get('/api/hairdresser/settings/google/callback', hairdresser.connectGoogle);
+  app.get('/api/hairdresser/settings/google/disconnect', hairdresser.disconnectGoogle);
+  app.get('/api/hairdresser/settings/facebook/callback', hairdresser.connectFacebook);
+  app.get('/api/hairdresser/settings/facebook/disconnect', hairdresser.disconnectFacebook);
 
   //-----athorization required api-----
   app.all('/api/admin*', apiEnsureAuthenticated);
@@ -132,6 +173,17 @@ exports = module.exports = function(app, passport) {
   app.post('/api/admin/accounts/:id/notes', adminAccount.newNote);
   app.post('/api/admin/accounts/:id/status', adminAccount.newStatus);
   app.delete('/api/admin/accounts/:id', adminAccount.delete);
+
+  //admin > hairdressers 
+  app.get('/api/admin/hairdressers', adminHairdresser.find);
+  app.post('/api/admin/hairdressers', adminHairdresser.create);
+  app.get('/api/admin/hairdressers/:id', adminHairdresser.read);
+  app.put('/api/admin/hairdressers/:id', adminHairdresser.update);
+  app.put('/api/admin/hairdressers/:id/user', adminHairdresser.linkUser);
+  app.delete('/api/admin/hairdressers/:id/user', adminHairdresser.unlinkUser);
+  app.post('/api/admin/hairdressers/:id/notes', adminHairdresser.newNote);
+  app.post('/api/admin/hairdressers/:id/status', adminHairdresser.newStatus);
+  app.delete('/api/admin/hairdressers/:id', adminHairdresser.delete);
 
   //admin > statuses
   app.get('/api/admin/statuses', adminStatus.find);
@@ -210,6 +262,10 @@ exports = module.exports = function(app, passport) {
   //admin > accounts
   app.get('/admin/accounts', useAngular);
   app.get('/admin/accounts/:id', useAngular);
+
+  //admin > hairdressers
+  app.get('/admin/hairdressers', useAngular);
+  app.get('/admin/hairdressers/:id', useAngular);
 
   //admin > statuses
   app.get('/admin/statuses', useAngular);

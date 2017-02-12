@@ -129,7 +129,7 @@ angular.module('security.service', [
         var data = response.data;
         if(data.success){
           closeLoginDialog(true);
-          alert('here ', data);
+          
           service.currentUser = data.user;
         }
         return data;
@@ -198,6 +198,14 @@ angular.module('security.service', [
     // Is the current user an administrator?
     isAdmin: function() {
       return !!(service.currentUser && service.currentUser.admin);
+    },
+
+    //Is the current user an hairdresser
+    isHairdresser: function(){
+      return !!(service.currentUser && service.currentUser.hairdresser);
+    },
+    isAccount:function(){
+      return !!(service.currentUser && service.currentUser.account);
     }
   };
 

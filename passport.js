@@ -47,7 +47,7 @@ exports = module.exports = function(app, passport) {
       });
 
       workflow.on('populateUser', function(user){
-        user.populate('roles.admin roles.account', function(err, user){
+        user.populate('roles.admin roles.account roles.hairdresser', function(err, user){
           if(err){
             return workflow.emit('exception', err);
           }
@@ -162,7 +162,7 @@ exports = module.exports = function(app, passport) {
   });
 
   passport.deserializeUser(function(id, done) {
-    app.db.models.User.findOne({ _id: id }).populate('roles.admin').populate('roles.account').exec(function(err, user) {
+    app.db.models.User.findOne({ _id: id }).populate('roles.admin').populate('roles.account').populate('roles.hairdresser').exec(function(err, user) {
       if (user && user.roles && user.roles.admin) {
         user.roles.admin.populate("groups", function(err, admin) {
           done(err, user);

@@ -216,6 +216,21 @@ describe('security', function() {
       expect(service.currentUser).toBe(userInfo);
     });
 
+    it("should be hairdresser if we update with hairdresser user info", function() {
+      var userInfo = { hairdresser: true };
+      service.currentUser = userInfo;
+      expect(service.isAuthenticated()).toBe(true);
+      expect(service.isHairdresser()).toBe(true);
+      expect(service.currentUser).toBe(userInfo);
+    });
+    it("should be account if we update with account user info", function() {
+      var userInfo = { account: true };
+      service.currentUser = userInfo;
+      expect(service.isAuthenticated()).toBe(true);
+      expect(service.isAccount()).toBe(true);
+      expect(service.currentUser).toBe(userInfo);
+    });
+
     it("should not be authenticated or admin if we clear the user", function() {
       var userInfo = { admin: true };
       service.currentUser = userInfo;

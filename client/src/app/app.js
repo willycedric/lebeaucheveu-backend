@@ -5,6 +5,7 @@ angular.module('app', [
   'signup',
   'login',
   'account',
+  'hairdresser',
   'admin',
   'services.i18nNotifications',
   'services.httpRequestTracker',

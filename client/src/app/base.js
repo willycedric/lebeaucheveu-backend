@@ -1,4 +1,4 @@
-angular.module('base',['ngRoute', 'security', 'services.utility', 'services.accountResource', 'services.adminResource', 'ui.bootstrap']);
+angular.module('base',['ngRoute', 'security', 'services.utility', 'services.accountResource','services.accountResource', 'services.adminResource', 'ui.bootstrap']);
 angular.module('base').controller('HeaderCtrl', ['$scope', '$location', 'security',
   function ($scope, $location, security) {
     $scope.isAuthenticated = function(){

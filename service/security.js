@@ -7,7 +7,9 @@ var filterUser = function (user) {
       //firstName: user.firstName,
       //lastName: user.lastName,
       admin: !!(user.roles && user.roles.admin),
-      isVerified: !!(user.roles && user.roles.account && user.roles.account.isVerified && user.roles.account.isVerified === 'yes')
+      account:!!(user.roles && user.roles.account),
+      hairdresser:!!(user.roles && user.roles.hairdresser),
+      isVerified:  !!(user.roles && user.roles.account && user.roles.account.isVerified && user.roles.account.isVerified === 'yes') || !!(user.roles && user.roles.hairdresser && user.roles.hairdresser.isVerified && user.roles.hairdresser.isVerified === 'yes')
     };
   }
   return null;
@@ -185,7 +187,7 @@ var socialLogin = function(provider, req, res, next){
 
   workflow.on('populateUser', function(){
     var user = workflow.user;
-    user.populate('roles.admin roles.account', function(err, user){
+    user.populate('roles.admin roles.account roles.hairdresser', function(err, user){
       if(err){
         return workflow.emit('exception', err);
       }
@@ -239,7 +241,7 @@ var socialLogin = function(provider, req, res, next){
     });
   });
 
-  workflow.emit('authUser');
+  workflow.emit('@');
 };
 
 var security = {
@@ -327,7 +329,14 @@ var security = {
           }
 
           workflow.user = user;
-          workflow.emit('createAccount');
+          //check if it's a hairdresser role=1
+          var userRole = req.body.role || 0; 
+          if(parseInt(userRole)===1){
+            workflow.emit('createHairdresser');
+          }else{
+             workflow.emit('createAccount');
+          }
+         
         });
       });
     });
@@ -356,7 +365,34 @@ var security = {
           if (err) {
             return workflow.emit('exception', err);
           }
+          workflow.emit('sendWelcomeEmail');
+        });
+      });
+    });
 
+    workflow.on('createHairdresser', function() {
+      var fieldsToSet = {
+        isVerified: req.app.config.requireAccountVerification ? 'no' : 'yes',
+        'name.full': workflow.user.username,
+        user: {
+          id: workflow.user._id,
+          name: workflow.user.username
+        },
+        search: [
+          workflow.user.username
+        ]
+      };
+
+      req.app.db.models.Hairdresser.create(fieldsToSet, function(err, hairdresser) {
+        if (err) {
+          return workflow.emit('exception', err);
+        }
+        //update user with hairdresser
+        workflow.user.roles.hairdresser = hairdresser._id;
+        workflow.user.save(function(err, user) {
+          if (err) {
+            return workflow.emit('exception', err);
+          }
           workflow.emit('sendWelcomeEmail');
         });
       });
@@ -400,7 +436,6 @@ var security = {
             if (err) {
               return workflow.emit('exception', err);
             }
-
             workflow.outcome.defaultReturnUrl = user.defaultReturnUrl();
             workflow.emit('response');
           });
