@@ -6,6 +6,7 @@ exports = module.exports = function(app, mongoose) {
   require('./schema/Status')(app, mongoose);
   require('./schema/StatusLog')(app, mongoose);
   require('./schema/Category')(app, mongoose);
+  require('./schema/BlogCategory')(app,mongoose);
 
   //then regular docs
   require('./schema/User')(app, mongoose);
@@ -14,4 +15,5 @@ exports = module.exports = function(app, mongoose) {
   require('./schema/Account')(app, mongoose);
   require('./schema/Hairdresser')(app, mongoose);
   require('./schema/LoginAttempt')(app, mongoose);
+  require('./schema/Blog')(app,mongoose);
 };
