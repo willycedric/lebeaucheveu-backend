@@ -2,6 +2,7 @@ angular.module('services.accountResource', ['security.service']).factory('accoun
   // local variable
   var baseUrl = '/api';
   var processResponse = function(res){
+    console.log('inside the logbook ',res.data);
     return res.data;
   };
   var processError = function(e){

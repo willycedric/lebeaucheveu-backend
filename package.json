@@ -26,6 +26,7 @@
     "compression": "^1.x.x",
     "connect-mongo": "^0.8.x",
     "cookie-parser": "^1.x.x",
+    "cors": "^2.8.1",
     "csurf": "^1.x.x",
     "emailjs": "^0.3.x",
     "express": "^4.12.x",

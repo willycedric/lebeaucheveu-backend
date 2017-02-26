@@ -4,7 +4,7 @@
 var admin = {
   getStats: function(req, res, next){
     var counts = {};
-    var collections = ['User', 'Account', 'Admin', 'AdminGroup', 'Category', 'Status'];
+    var collections = ['User', 'Account', 'Admin', 'AdminGroup', 'Category', 'Status','Hairdresser'];
     var queries = [];
 
     collections.forEach(function(collection, i, arr){

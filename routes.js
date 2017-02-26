@@ -18,13 +18,18 @@ function useAngular(req, res, next){
 }
 
 function apiEnsureAuthenticated(req, res, next){
-  if(req.isAuthenticated()){
+  if(req.method != 'OPTIONS'){
+    if(req.isAuthenticated()){
+    return next();
+    }
+    res.set('X-Auth-Required', 'true');
+    //no need to store the originalUrl in session: caller knows the return url
+    //req.session.returnUrl = req.originalUrl;
+    res.status(401).send({errors: ['authentication required']});
+  }else{
     return next();
   }
-  res.set('X-Auth-Required', 'true');
-  //no need to store the originalUrl in session: caller knows the return url
-  //req.session.returnUrl = req.originalUrl;
-  res.status(401).send({errors: ['authentication required']});
+  
 }
 
 function apiEnsureAccount(req, res, next){
@@ -75,10 +80,15 @@ function apiEnsureVerifiedHairdresser(req, res, next){
 }
 
 function apiEnsureAdmin(req, res, next){
-  if(req.user.canPlayRoleOf('admin')){
-    return next();
-  }
-  res.status(401).send({errors: ['authorization required']});
+  if(req.method !='OPTIONS'){
+      if(req.user.canPlayRoleOf('admin')){
+      return next();
+      }
+      res.status(401).send({errors: ['authorization required']});
+    }else{
+      return next();
+    }
+  
 }
 
 exports = module.exports = function(app, passport) {

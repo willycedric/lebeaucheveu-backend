@@ -26,6 +26,9 @@ var user = {
     if (req.query.roles && req.query.roles === 'account') {
       filters['roles.account'] = {$exists: true};
     }
+    if (req.query.roles && req.query.roles === 'hairdresser') {
+      filters['roles.hairdresser'] = {$exists: true};
+    }
 
     req.app.db.models.User.pagedFind({
       filters: filters,

@@ -18,6 +18,7 @@ angular.module('app', [
 
 // Node.js Express backend csurf module csrf/xsrf token cookie name
 angular.module('app').config(['$httpProvider', 'XSRF_COOKIE_NAME', function($httpProvider, XSRF_COOKIE_NAME){
+  console.log('cookie ',XSRF_COOKIE_NAME);
   $httpProvider.defaults.xsrfCookieName = XSRF_COOKIE_NAME;
 }]);
 

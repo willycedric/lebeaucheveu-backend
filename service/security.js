@@ -447,7 +447,6 @@ var security = {
   },
   login: function(req, res){
     var workflow = req.app.utility.workflow(req, res);
-
     workflow.on('validate', function() {
       if (!req.body.username) {
         workflow.outcome.errfor.username = 'required';
