@@ -44,6 +44,10 @@ exports = module.exports = function(app, mongoose) {
     	default:0,
     	min:0
     },
+    summaryImageUrl:{
+      type:String,
+      default:''
+    },
     rating:{
     	type:Number,
     	default:0,
@@ -65,8 +69,8 @@ exports = module.exports = function(app, mongoose) {
     	type:Date
     },
     category:{
-    	  id: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
-      name: { type: String, default: '' }
+    	  id: { type: mongoose.Schema.Types.ObjectId, ref: 'BlogCategory' },
+        name: { type: String, default: '' }
     }
 
   });
@@ -74,6 +78,7 @@ exports = module.exports = function(app, mongoose) {
   blogSchema.index({ author: 1 });
   blogSchema.index({ status: 1 });
   blogSchema.index({ 'category.id': 1 });
+   blogSchema.index({ 'userCreated.id': 1 });
   blogSchema.index({ search: 1 });
   blogSchema.set('autoIndex', (app.get('env') === 'development'));
   app.db.model('Blog', blogSchema);

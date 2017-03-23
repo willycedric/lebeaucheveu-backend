@@ -1,5 +1,6 @@
 'use strict';
 // public api
+var sanitize = require('sanitize-html');
 var blog = {
   find: function (req, res, next) {
     var outcome = {};
@@ -33,7 +34,7 @@ var blog = {
 
       req.app.db.models.Blog.pagedFind({
         filters: filters,
-        keys: 'title userCreated status',
+        keys: 'title userCreated update_At edited_By content category description isPublished summaryImageUrl',
         limit: req.query.limit,
         page: req.query.page,
         sort: req.query.sort
@@ -63,7 +64,7 @@ var blog = {
     var workflow = req.app.utility.workflow(req, res);
 
     workflow.on('validate', function() {
-
+      
       if (!req.body['title']) {
         workflow.outcome.errors.push('Please enter a title.');
         return workflow.emit('response');
@@ -74,7 +75,7 @@ var blog = {
         return workflow.emit('response');
       }
 
-      if(!req.body['category']){
+      if(!req.body['category'] || req.body['category'].id==0){
         workflow.outcome.errors.push('Please chose a category');
         return workflow.emit('response');
       }
@@ -83,10 +84,6 @@ var blog = {
         return workflow.emit('response');
       }
 
-      if(!req.body['isPublished']){
-        workflow.outcome.errors.push('Please fill the publication state');
-        return workflow.emit('response');
-      }     
 
       workflow.emit('createBlog');
     });
@@ -97,19 +94,13 @@ var blog = {
         title:req.body.title,
         description:req.body.description,
         isPublished:req.body.isPublished,
-        content:req.body.content,
+        summaryImageUrl:req.body.summaryImageUrl,
+        content:sanitize(req.body.content,{
+          allowedTags: sanitize.defaults.allowedTags.concat([ 'h1','u','img' ])
+        }),
         category:{
           id:req.body.category._id,
           name:req.body.category.name
-        },
-        status:{
-          id:req.body.status._id,
-          name:req.body.status.name,
-          userCreated: {
-            id: req.user._id,
-            name: req.user.username,
-            time: new Date().toISOString()
-          }
         },
         userCreated: {
           id: req.user._id,
@@ -118,7 +109,7 @@ var blog = {
         }
       };
       
-      fieldsToSet.search =  fieldsToSet.title.split(" ");
+      fieldsToSet.search =  fieldsToSet.description.split(" ");
 
       req.app.db.models.Blog.create(fieldsToSet, function(err, blog) {
         if (err) {
@@ -201,31 +192,28 @@ var blog = {
     });
 
     workflow.on('patchBlog', function() {
+      
       var fieldsToSet = {
-        title:req.body.title,
-        description:req.body.description,
-        isPublished:req.body.isPublished,
-        content:req.body.content,
         category:{
           id:req.body.category._id,
           name:req.body.category.name
         },
-        status:{
-          id:req.body.status._id,
-          name:req.body.status.name,
-          userCreated: {
-            id: req.user._id,
-            name: req.user.username,
-            time: new Date().toISOString()
-          }
-        },
-        userCreated: {
+        title:req.body.title,
+        description:req.body.description,
+        isPublished:req.body.isPublished,
+        summaryImageUrl:req.body.summaryImageUrl,
+        content:sanitize(req.body.content,{
+          allowedTags: sanitize.defaults.allowedTags.concat([ 'h1','u','img'])
+        }),
+        edited_By: {
           id: req.user._id,
           name: req.user.username,
           time: new Date().toISOString()
-        }
+        },
+        update_At:new Date().toISOString()
       };      
       fieldsToSet.search =  fieldsToSet.title.split(" ");
+     
 
       var options = { new: true };
 

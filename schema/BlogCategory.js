@@ -6,13 +6,15 @@ exports = module.exports = function(app, mongoose) {
   		type:String,
   		default:''
   	},
-  	author: {
+  	userCreated: {
       id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-      name: { type: String, default: '' }
+      name: { type: String, default: '' },
+      time: { type: Date, default: Date.now }
     },
-    edited_By: {
+    update_by: {
       id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-      name: { type: String, default: '' }
+      name: { type: String, default: '' },
+      time: { type: Date, default: Date.now }
     },
     description:{
     	type:String,
@@ -26,10 +28,7 @@ exports = module.exports = function(app, mongoose) {
     	type:Date,
     	default:Date.now()
     },
-    edited_At:{
-    	type:Date,
-    	default:Date.now()
-    }
+     search: [String]
   });
   BlogCategorySchema.plugin(require('./plugins/pagedFind'));
   BlogCategorySchema.index({ name: 1 });
