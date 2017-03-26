@@ -3,10 +3,49 @@
 exports = module.exports = function(app, passport) {
   var LocalStrategy = require('passport-local').Strategy,
       TwitterStrategy = require('passport-twitter').Strategy,
-      GitHubStrategy = require('passport-github').Strategy,
-      FacebookStrategy = require('passport-facebook').Strategy,
+      GitHubStrategy = require('passport-github').Strategy;
+      var passportJWT = require('passport-jwt');
+      var ExtractJwt = require('passport-jwt').ExtractJwt
+      ,JwtStrategy = passportJWT.Strategy,
+      FacebookStrategy = passportJWT.Strategy,
       GoogleStrategy = require('passport-google-oauth').OAuth2Strategy,
       TumblrStrategy = require('passport-tumblr').Strategy;
+      var config = require('./config');
+
+
+
+var opts = {};
+  opts.jwtFromRequest = ExtractJwt.fromAuthHeader();
+  opts.secretOrKey = config.webToken.secrets.jwt;
+
+ passport.use('user-jwt',new JwtStrategy(opts, function(jwt_payload, done) {
+    app.db.models.account.findOne({_id: jwt_payload._id}, function(err, user) {
+      if (err) {
+        return done(err, false);
+      }
+      if (user) {
+       
+        done(null, user);
+      } else {
+
+        done(null, false);
+      }
+    });
+  }));
+   passport.use('hairdresser-jwt',new JwtStrategy(opts, function(jwt_payload, done) {
+     app.db.models.Hairdresser.findOne({_id: jwt_payload._id}, function(err, user) {
+      if (err) {
+        return done(err, false);
+      }
+      if (user) {
+       
+        done(null, user);
+      } else {
+
+        done(null, false);
+      }
+    });
+  }));
 
   passport.use(new LocalStrategy(
     function(username, password, done) {

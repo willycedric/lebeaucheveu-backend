@@ -100,7 +100,8 @@ var hairdresser = {
     var outcome = {};
 
     var getAccountData = function(callback) {
-      req.app.db.models.Hairdresser.findById(req.user.roles.hairdresser.id, 'name company phone zip').exec(function(err, hairdresser) {
+      req.app.db.models.Hairdresser.findById(req.user.roles.hairdresser.id, 'name nextbookings appointments notifications listOfPerformance profile_picture lastconnection description categories paiementInfo gallery_pictures customer_type activityArea  phone zip')
+      .exec(function(err, hairdresser) {
         if (err) {
           return callback(err, null);
         }

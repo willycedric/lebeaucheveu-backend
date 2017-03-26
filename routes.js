@@ -39,17 +39,26 @@ function apiEnsureAuthenticated(req, res, next){
 }
 
 function apiEnsureAccount(req, res, next){
-  console.log('apiEnsureAccount  is called');
-  if(req.user.canPlayRoleOf('account')){
+  if(req.method != 'OPTIONS'){
+    if(req.user.canPlayRoleOf('account')){
+      return next();
+   }
+    res.status(401).send({errors: ['authorization required']});
+  }else{
     return next();
   }
-  res.status(401).send({errors: ['authorization required']});
+  
 }
 function apiEnsureHairdresser(req, res, next){
-  if(req.user.canPlayRoleOf('hairdresser')){
+  if(req.method!='OPTIONS'){
+
+    if(req.user.canPlayRoleOf('hairdresser')){
+      return next();
+    }
+    res.status(401).send({errors: ['authorization required']});
+  }else{
     return next();
   }
-  res.status(401).send({errors: ['authorization required']});
 }
 
 function apiEnsureVerifiedAccount(req, res, next){

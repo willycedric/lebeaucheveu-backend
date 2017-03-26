@@ -1,7 +1,91 @@
-'use strict';
+
+
+var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
 
 exports = module.exports = function(app, mongoose) {
-  var accountSchema = new mongoose.Schema({
+  var appointmentSchema = new Schema({
+  selectedHour:{
+    type:String
+  },
+  dayOfWeek:{
+    type:Date
+  },
+  haidresserId:{
+    type:Schema.Types.ObjectId
+  },
+  hairdresserUsername:{
+    type:String
+  },
+  //describe the appointment progression
+  appointmentState:{
+    type:Number,
+    default:-1,//-1 -> empty,0 -> pending, 1 -> done,-2 --> cancel by the hairdresser, -3 --> cancel by the customer.
+    min:-3,
+    max:0
+  },
+  createdAt:{
+    type:Date
+  },
+  updateAt:{
+    type:Date
+  },
+  location:{
+    type:String
+  }
+});
+
+//User can have many locations
+var locationSchema = new Schema({
+  type:{
+    type:String
+  },
+  address:{
+    type:String
+  },
+  city:{
+    type:String
+  },
+  zipcode:{
+    type:String
+  }
+});
+
+//Related users
+var relatedSchema = new Schema({
+  _id:{
+    type:Schema.Types.ObjectId
+  },
+  name:{
+    type:String
+  },
+  role:{
+    type:String
+  }
+
+});
+
+//products purchased by the user
+var productSchema = new Schema ({
+  _id:{
+    type:Schema.Types.ObjectId,
+  },
+  purchasedAt:Date
+})
+//user notifications schema 
+var NotificationSchema = new Schema ({
+    title:{
+      type:String,
+      default:'Rendez vous supprimé'
+    },
+    message : {
+      type:String
+    },
+    date : { type : Date, default : Date.now() },
+    read:{type:Boolean, default:false}
+});
+
+var accountSchema = new Schema({
     user: {
       id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
       name: { type: String, default: '' }
@@ -33,7 +117,19 @@ exports = module.exports = function(app, mongoose) {
       name: { type: String, default: '' },
       time: { type: Date, default: Date.now }
     },
-    search: [String]
+    search: [String],
+    lastconnection:{
+    type:Date,
+    default:Date.now
+  },dateOfBirth:{
+      type:Date
+    },
+    photoUrl:{
+      type:String
+    },
+    locations:[locationSchema],
+    nextAppointment:[appointmentSchema],
+    notifications:[NotificationSchema]
   });
   accountSchema.plugin(require('./plugins/pagedFind'));
   accountSchema.index({ user: 1 });

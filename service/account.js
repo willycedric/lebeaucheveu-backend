@@ -569,6 +569,7 @@ var account = {
 
   connectFacebook: function(req, res, next){
     return connectSocial('facebook', req, res, next);
-  }
+  },
+
 };
 module.exports = account;

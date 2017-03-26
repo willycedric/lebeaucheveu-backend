@@ -1,4 +1,6 @@
 'use strict';
+var auth = require('../util/auth/index');
+var signToken = auth.signToken;
 var filterUser = function (user) {
   if (user) {
     return {
@@ -246,7 +248,13 @@ var socialLogin = function(provider, req, res, next){
 
 var security = {
   sendCurrentUser: function (req, res, next) {
-    res.status(200).json({user: filterUser(req.user)});
+    //var token = signToken(req.user.id,req.user.name);
+    if(req.user){
+      res.status(200).json({user: filterUser(req.user),token:signToken(req.user._id,req.user.name)})
+    }else{
+      res.status(200).json({user: filterUser(req.user)})
+    }
+  
   },
   signup: function(req, res){
     var workflow = req.app.utility.workflow(req, res);
@@ -525,7 +533,9 @@ var security = {
             if (err) {
               return workflow.emit('exception', err);
             }
+            var token = signToken(user._id,user.name);
             workflow.outcome.user = filterUser(req.user);
+            workflow.outcome.token=token;
             workflow.outcome.defaultReturnUrl = user.defaultReturnUrl();
             workflow.emit('response');
           });

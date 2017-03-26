@@ -1,7 +1,102 @@
 'use strict';
-
+var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
 exports = module.exports = function(app, mongoose) {
-  var hairdresserSchema = new mongoose.Schema({
+
+  //Schema containing informations about customer who have made an reservation
+var RelatedCustomerSchema  = new Schema({
+    customerUsername:{ //The customer name
+      type:String
+    },
+    customerFirstname:{
+      type:String
+    },
+    customerLastname:{
+      type:String
+    },
+    customerLocation:{
+      type:String
+    },
+    createdAt:{
+        type: Date //appointment creation date
+    },
+    updatedAt:{
+        type:Date//appointment update date
+    }
+});
+
+//user notifications schema 
+var NotificationSchema = new Schema ({
+    title:{
+      type:String,
+      default:'Rendez vous supprimé'
+    },
+    message : {
+      type:String
+    },
+    date : { type : Date, default : Date.now() },
+    read:{type:Boolean, default:false}
+});
+
+//Hairdresser appointmentSchema;
+var HairdresserAppointmentSchema = new Schema({   
+  slotTime:{ //appointment hours (in the hairdresser's opening hour list)
+    type:String
+  },
+  //Used to check is the slot is already taken
+  slotType:{ 
+    type:Number,
+    default:1 //1 --> Free, 0 --> already taken, -1 -->locked by the hairdresser
+  },
+  //describe the appointment progression
+  slotState:{
+    type:Number,
+    default:0,//0 -> empty,-1 -> pending, 1 -> done,-2 --> cancel by the hairdresser, -3 --> cancel by the customer
+    min:-3,
+    max:1
+  },
+  dayOfWeek:{
+    type:Date
+  },
+relatedCustomers:RelatedCustomerSchema,//customer with an appointment
+createdAt:{ //appointment creatioon date
+  type:Date
+},
+updateAt:{ //appointment update date
+  type:Date
+},
+location:{
+  type:String
+}
+});
+
+
+var bookingSchema = new Schema({
+  customerId:{
+    type:Schema.Types.ObjectId
+  },
+  customerLastname :{
+    type:String
+  },
+  customerFirstname:{
+    type:String
+  },
+  appointmentDate:{
+    type:Date
+  },
+  appointmentHour:{
+    type:String
+  },
+  appointmentLocation:{
+    type:String
+  },
+  appointmentState:{
+    type:Number,
+    Max:1,
+    Min:-3
+  }
+});
+  var hairdresserSchema = new Schema({
     user: {
       id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
       name: { type: String, default: '' }
@@ -33,7 +128,40 @@ exports = module.exports = function(app, mongoose) {
       name: { type: String, default: '' },
       time: { type: Date, default: Date.now }
     },
-    search: [String]
+    search: [String],
+    nextbookings:[bookingSchema],
+    appointments:[HairdresserAppointmentSchema],
+    notifications:[NotificationSchema],
+   listOfPerformance:[String],
+    profile_picture:[String],
+    lastconnection:{
+     type:Date,
+     default:Date.now
+   },
+   description:{
+    type:String,
+  lowercase:true,
+  },
+  categories:[String],
+  paiementInfo:{
+    number:Number,
+    cvc:Number,
+    exp_month:Number,
+    exp_year:Number,
+  },
+  gallery_pictures:[String],
+  customer_type:{
+    type:Number,
+    min:0,
+  max:2,
+  default:1
+  },
+  activityArea:{ //Array of area covered by the hairdresser
+    type:Array
+  },
+  areaPostCode:{
+    type:Array
+  }
   });
   hairdresserSchema.plugin(require('./plugins/pagedFind'));
   hairdresserSchema.index({ user: 1 });

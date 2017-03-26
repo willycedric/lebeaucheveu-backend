@@ -10,10 +10,11 @@ var config = require('./config'),
     http = require('http'),
     path = require('path'),
     passport = require('passport'),
-    mongoose = require('mongoose'),
+    mongoose = require('mongoose'),    
     helmet = require('helmet'),
     csrf = require('csurf');
-
+    mongoose.Promise = require('bluebird'); //custom mongoose promise librairy 
+var api = require('./route/api')(passport);
 //create express app
 var app = express();
 
@@ -89,7 +90,7 @@ require('./passport')(app, passport);
 
 //setup routes
 require('./routes')(app, passport);
-
+app.use('/api',api);
 //custom (friendly) error handler
 app.use(require('./service/http').http500);
 
