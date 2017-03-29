@@ -49,6 +49,8 @@ app.use(require('method-override')());
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.text());                                    
+app.use(bodyParser.json({ type: 'application/json'})); 
 app.use(cookieParser(config.cryptoKey));
 app.use(session({
   resave: true,
@@ -69,6 +71,11 @@ app.use(function(req, res, next) {
 
 });
 helmet(app);
+
+/*app.get('/api/hairdresser/upload', function(req,res,next){
+  console.log(req.user);
+  next();
+});*/
 
 //response locals
 app.use(function(req, res, next) {

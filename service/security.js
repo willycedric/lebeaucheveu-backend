@@ -17,6 +17,7 @@ var filterUser = function (user) {
   return null;
 };
 
+
 var getSocialCallbackUrl = function(hostname, provider){
   return 'http://' + hostname + '/login/' + provider + '/callback';
 };

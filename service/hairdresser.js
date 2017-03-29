@@ -570,6 +570,18 @@ var hairdresser = {
 
   connectFacebook: function(req, res, next){
     return connectSocial('facebook', req, res, next);
+  },
+  upload:function(req,res,next){
+    var multer = require('multer');
+    var handler = multer({dest:__dirname+'../upload'});
+    req.app(handler.single('myFile'), function(req,res){
+      var myFile = req.file;
+      var originalename = myFile.originalename;
+      var filename = myFile.filename;
+      var path = myFile.path;
+      var mimetype = myFile.mimetype;
+      res.send(myFile.toJson());
+    });
   }
 };
 module.exports = hairdresser;

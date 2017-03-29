@@ -142,6 +142,7 @@ exports = module.exports = function(app, passport) {
   app.get('/api/hairdresser/verification', hairdresser.upsertVerification);
   app.post('/api/hairdresser/verification', hairdresser.resendVerification);
   app.get('/api/hairdresser/verification/:token/', hairdresser.verify);
+  app.post('/api/hairdresser/upload',hairdresser.upload);
   app.all('/api/hairdresser/settings*',apiEnsureVerifiedHairdresser);
   app.get('/api/hairdresser/settings', hairdresser.getAccountDetails);
   app.put('/api/hairdresser/settings', hairdresser.update);
