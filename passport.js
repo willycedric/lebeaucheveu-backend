@@ -16,10 +16,25 @@ exports = module.exports = function(app, passport) {
 
 var opts = {};
   opts.jwtFromRequest = ExtractJwt.fromAuthHeader();
+ /* opts.jwtFromRequest=function (request) {
+
+        var token = null;
+        if (request.headers[AUTH_HEADER]) {
+            var auth_params = auth_hdr.parse(request.headers[AUTH_HEADER]);
+            if (auth_params && auth_scheme === auth_params.scheme) {
+                token = auth_params.value;
+            }
+        }
+        console.log('token ',token);
+        return token;
+    };*/
+
   opts.secretOrKey = config.webToken.secrets.jwt;
 
- passport.use('user-jwt',new JwtStrategy(opts, function(jwt_payload, done) {
-    app.db.models.account.findOne({_id: jwt_payload._id}, function(err, user) {
+  
+
+ passport.use('user-jwt',new JwtStrategy(opts, function(jwt_payload, done) {    
+    app.db.models.User.findOne({_id: jwt_payload._id}, function(err, user) {
       if (err) {
         return done(err, false);
       }
@@ -33,7 +48,8 @@ var opts = {};
     });
   }));
    passport.use('hairdresser-jwt',new JwtStrategy(opts, function(jwt_payload, done) {
-     app.db.models.Hairdresser.findOne({_id: jwt_payload._id}, function(err, user) {
+      console.log('Inside the passport method',jwt_payload);
+     app.db.models.User.findOne({_id: jwt_payload._id}, function(err, user) {
       if (err) {
         return done(err, false);
       }

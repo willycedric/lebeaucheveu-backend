@@ -42,12 +42,6 @@ var locationSchema = new Schema({
   },
   address:{
     type:String
-  },
-  city:{
-    type:String
-  },
-  zipcode:{
-    type:String
   }
 });
 
@@ -90,6 +84,10 @@ var accountSchema = new Schema({
       id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
       name: { type: String, default: '' }
     },
+    email:{
+      type:String,
+      defautl:''
+    },
     isVerified: { type: String, default: '' },
     verificationToken: { type: String, default: '' },
     name: {
@@ -100,7 +98,6 @@ var accountSchema = new Schema({
     },
     company: { type: String, default: '' },
     phone: { type: String, default: '' },
-    zip: { type: String, default: '' },
     status: {
       id: { type: String, ref: 'Status' },
       name: { type: String, default: '' },

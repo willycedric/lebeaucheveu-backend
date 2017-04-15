@@ -4,24 +4,30 @@ var Schema = mongoose.Schema;
 exports = module.exports = function(app, mongoose) {
 
   //Schema containing informations about customer who have made an reservation
+// var RelatedCustomerSchema  = new Schema({
+//     customerUsername:{ //The customer name
+//       type:String
+//     },
+//     customerFirstname:{
+//       type:String
+//     },
+//     customerLastname:{
+//       type:String
+//     },
+//     customerLocation:{
+//       type:String
+//     },
+//     createdAt:{
+//         type: Date //appointment creation date
+//     },
+//     updatedAt:{
+//         type:Date//appointment update date
+//     }
+// });
 var RelatedCustomerSchema  = new Schema({
-    customerUsername:{ //The customer name
-      type:String
-    },
-    customerFirstname:{
-      type:String
-    },
-    customerLastname:{
-      type:String
-    },
-    customerLocation:{
-      type:String
-    },
-    createdAt:{
-        type: Date //appointment creation date
-    },
-    updatedAt:{
-        type:Date//appointment update date
+   account: {
+      id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      name: { type: String, default: '' }
     }
 });
 
@@ -70,7 +76,21 @@ location:{
 }
 });
 
-
+var galeryEnter = new Schema({
+  url:{
+    type:String,
+    default:""
+  },
+  createdAt:{
+    type:Date,
+    default:Date.now
+  },
+  category:{type: mongoose.Schema.Types.ObjectId, ref: 'HaircutCatalog' },
+  published:{
+    type:Boolean,
+    default:true
+  }
+});
 var bookingSchema = new Schema({
   customerId:{
     type:Schema.Types.ObjectId
@@ -133,7 +153,10 @@ var bookingSchema = new Schema({
     appointments:[HairdresserAppointmentSchema],
     notifications:[NotificationSchema],
    listOfPerformance:[String],
-    profile_picture:[String],
+    profile_picture:{
+      type:String,
+      default:""
+    },
     lastconnection:{
      type:Date,
      default:Date.now
@@ -142,14 +165,14 @@ var bookingSchema = new Schema({
     type:String,
   lowercase:true,
   },
-  categories:[String],
+  categories:[mongoose.modelSchemas.HaircutCatalog],
   paiementInfo:{
     number:Number,
     cvc:Number,
     exp_month:Number,
     exp_year:Number,
   },
-  gallery_pictures:[String],
+  gallery_pictures:[galeryEnter],
   customer_type:{
     type:Number,
     min:0,

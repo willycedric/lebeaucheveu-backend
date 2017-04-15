@@ -23,6 +23,7 @@
     "async": "^1.x.x",
     "bcrypt": "^0.8.x",
     "body-parser": "^1.x.x",
+    "cloudinary": "^1.8.0",
     "compression": "^1.x.x",
     "connect-mongo": "^0.8.x",
     "cookie-parser": "^1.x.x",

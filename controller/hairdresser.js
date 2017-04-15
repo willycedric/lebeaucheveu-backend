@@ -53,30 +53,69 @@ exports.getOne = function(req, res, next) {
  * @return {[type]}        [description]
  */
 exports.put = function(req, res, next) {
-    var hairdresser = req.hairdresser;   
-    var update = req.body.user;
-    delete hairdresser.categories;
-    delete hairdresser.activityArea;
-    delete hairdresser.listOfPerformance;
-    delete hairdresser.areaPostCode;
-    delete hairdresser.description;
-    hairdresser.categories = req.body.user.categories;
-    hairdresser.activityArea = req.body.user.activityArea;
-    hairdresser.description = req.body.user.description;
-    req.body.user.activityArea.forEach(function(area){
-      hairdresser.areaPostCode.push(area[0]+area[1]);
-    });    
-    hairdresser.listOfPerformance = req.body.user.listOfPerformance;
-  _.merge(hairdresser, update);
-     hairdresser.save(function(err, saved) {
-        if (err) {
-          next(err);
-        } else {
-          res.json(saved);
-        }
+  //console.log(req.user.roles.hairdresser,req.body.user.hairdresser._id);
+  var workflow = req.app.utility.workflow(req,res);
+    workflow.on('patchHairdresser', function(){ 
+      var hairdresser = req.user.roles.hairdresser;      
+      _.merge(hairdresser,req.body.user.hairdresser);
+      hairdresser.save(function(err,saved){
+          if(err)
+            return next(err);
+            workflow.outcome.hairdresser = saved;
+              console.log('list of performance', saved.listOfPerformance);
+            console.log("cover area", saved.activityArea);
+            return workflow.emit('patchUser');
+        });
+    
+    }); 
+  workflow.on('patchUser', function(){
+    req.app.db.models.User.findById(req.user.id, function(err, user){
+      if(err)
+        return next(err);        
+        _.merge(user,req.body.user.user);
+        user.save(function(err, saved){
+          if(err)
+            return next(err);
+          workflow.outcome.user=saved;
+          return workflow.emit('response');
+        });
+    });
   });
+   workflow.emit("patchHairdresser");
 };
 
+
+exports.updatecategory = function(req,res,next){
+  
+  var hairdresser = req.user;
+  var workflow = req.app.utility.workflow(req, res);
+  workflow.on('validate', function() {
+      if (!req.body.name) {
+        workflow.outcome.errfor.name = 'required';
+      }
+
+      if(!req.body.state){
+        workflow.outcome.errfor.state='required';
+      }
+      workflow.emit('patchCategory');
+  });
+
+  workflow.on('patchCategory', function(){
+      var category = {};
+      category.name = req.body.name;
+      category.state= req.body.state;
+      
+      hairdresser.categories.push(category);
+      hairdresser.save(function(err,hairdresser){
+        if(err){
+          return next(err);
+        }
+         workflow.outcome.hairdresser = hairdresser;
+        return workflow.emit('response');
+      });
+  });
+  workflow.emit('validate');
+};
 
 /**
  * [updateAppointmentSchema description]
@@ -87,7 +126,7 @@ exports.put = function(req, res, next) {
  */
 exports.updateAppointmentSchema = function(req,res,next){
    //req.user contains customer information 
-
+   console.log('req.user -->', req.user,'location', req.body.location, "hairdresserId", req.body.hairdresserId);
    req.app.db.models.Hairdresser.findById(req.body.hairdresserId, function(err,hairdresser){
       if(err){
         return next(err);
@@ -98,13 +137,9 @@ exports.updateAppointmentSchema = function(req,res,next){
           slotType:0, //temporally
           createdAt:Date.now(),
           relatedCustomers:{
-            _id:req.user._id,
-            customerLastname:req.user.lastname,
-            customerFirstname:req.user.firstname,
-            customerUsername:req.user.username,
-            createdAt:Date.now()
+            account:req.user._id
           },
-          location:req.user.locations[req.body.locationIndex].address+" "+req.user.locations[req.body.locationIndex].zipcode+" "+req.user.locations[req.body.locationIndex].city
+          location:req.body.location
         }; 
         //populate the hairdresser appointment array
         hairdresser.appointments.push(newAppointment);
@@ -342,9 +377,24 @@ exports.hairdresserDeleteBooking = function(req,res,next){
  * @return {[type]}        [description]
  */
 exports.findHairdressers =  function(req, res, next){
+  if ( !String.prototype.includes ) {
+  String.prototype.includes = function(search, start) {
+    'use strict';
+    if (typeof start !== 'number') {
+      start = 0;
+    } 
+
+    if (start + search.length > this.length) {
+      return false;
+    } else {
+      return this.indexOf(search,start) !== -1;
+    }
+  };
+  }
   var location = req.body.location;
   var category = req.body.category;
   var haircut = req.body.haircut;
+  console.log(req.body.location, req.body.category, req.body.haircut);
   var listOfAvailableCategories=['cheveux afro','cheveux lisses',"cheveux bouclés"];
 
   var listOfAvailableCurlyHaircuts = ["Vanilles",
@@ -372,11 +422,14 @@ exports.findHairdressers =  function(req, res, next){
           }else if(!hairdressers){
             console.error('no available hairdressers');
           }else{
-              hairdressers.forEach(function(hairdresser){  //build the list of hairdresser in the selected area
-                  if(hairdresser.areaPostCode.indexOf(location)!=-1){
-                   listOfLocatedHairdressers.push(hairdresser);
-                  }
+              hairdressers.forEach(function(hairdresser){  //build the list of hairdresser in the selected area                
+                  hairdresser.activityArea.forEach(function(area){
+                      if(area.includes(location)){
+                        listOfLocatedHairdressers.push(hairdresser);
+                      }
+                    });                   
               });
+          
             callback(null,listOfLocatedHairdressers);
           }
         });
@@ -386,23 +439,27 @@ exports.findHairdressers =  function(req, res, next){
       var listOfLocatedAndCategorisedHairdressers=[];
 
       listOfLocatedHairdressers.forEach(function(hairdresser){
-        if(hairdresser.categories.indexOf(listOfAvailableCategories[parseInt(category)])!=-1){
-          listOfLocatedAndCategorisedHairdressers.push(hairdresser);
-        };
+        hairdresser.categories.forEach(function(elt){         
+          if(elt.name.toUpperCase() == listOfAvailableCategories[parseInt(category)].toUpperCase()){
+            listOfLocatedAndCategorisedHairdressers.push(hairdresser);
+            //console.log('here -->',hairdresser);
+          }
+        });
       });
       callback(null,listOfLocatedAndCategorisedHairdressers);
   },
   function(listOfLocatedAndCategorisedHairdressers,callback){ //build list of hairdressers who are able to perform the haircut selected
     var listOfSelectedHairdressers=[];
-    listOfLocatedAndCategorisedHairdressers.forEach(function(hairdresser){
+    listOfLocatedAndCategorisedHairdressers.forEach(function(hairdresser){      
       if(hairdresser.listOfPerformance.indexOf(listOfAvailableCurlyHaircuts[parseInt(haircut)])!=-1){
-        listOfSelectedHairdressers.push(hairdresser);
+        listOfSelectedHairdressers.push(hairdresser);        
       }
     });
     callback(null,listOfSelectedHairdressers);
   },
   function(listOfSelectedHairdressers){
       res.json(listOfSelectedHairdressers.map(function(hairdresser){
+        console.log(hairdresser.name);
         return hairdresser;
       }))
     }
@@ -503,4 +560,10 @@ exports.updateAppointmentState = function(req,res,next){
                 res.status(202).json({success:true});
               }
           });
+}
+
+
+exports.findHaircutCatalog = function(req, res,next){
+    var hairdresser =req.user.roles.hairdresser; 
+    res.status(200).json(hairdresser.categories.id(req.params.id));  
 }

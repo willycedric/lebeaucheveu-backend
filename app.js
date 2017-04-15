@@ -15,6 +15,7 @@ var config = require('./config'),
     csrf = require('csurf');
     mongoose.Promise = require('bluebird'); //custom mongoose promise librairy 
 var api = require('./route/api')(passport);
+var imageHelper = require('./service/imageHelper');
 //create express app
 var app = express();
 
@@ -47,10 +48,10 @@ app.use(require('compression')());
 app.use(require('serve-static')(path.join(__dirname, 'client/dist')));
 app.use(require('method-override')());
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(bodyParser.urlencoded({limit: "50MB", extended: true, parameterLimit:50000}));
 app.use(bodyParser.text());                                    
-app.use(bodyParser.json({ type: 'application/json'})); 
+app.use(bodyParser.json({ type: 'application/json',limit:'50MB'}));
 app.use(cookieParser(config.cryptoKey));
 app.use(session({
   resave: true,
@@ -70,6 +71,27 @@ app.use(function(req, res, next) {
   next();
 
 });
+
+//handle file upload
+/*app.put("/api/hairdresser/upload", function(req,res,next){
+  req.app.db.models.Hairdresser.findById(req.user.roles.hairdresser._id, function(err,hairdresser){
+    if(hairdresser && req.body.photo){
+      imageHelper.uploadBase64Image('./upload/'+req.user.roles.hairdresser._id.toString()+"_profile.jpg",req.body.photo,function(err,result){
+        if(err)
+          res.send(400,err);
+        else{
+          hairdresser.profile_picture = result.secure_url;
+          hairdresser.save(function(err){
+            if(err)
+              return next(err);
+            else
+              res.json(result.secure_url);
+          });
+        }
+      });
+    }
+  });
+});*/
 helmet(app);
 
 /*app.get('/api/hairdresser/upload', function(req,res,next){

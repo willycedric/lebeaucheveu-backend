@@ -100,7 +100,7 @@ var account = {
     var outcome = {};
 
     var getAccountData = function(callback) {
-      req.app.db.models.Account.findById(req.user.roles.account.id, 'name company phone zip').exec(function(err, account) {
+      req.app.db.models.Account.findById(req.user.roles.account.id, 'email isVerified name lastconnection phone photoUrl locations nextAppointment').exec(function(err, account) {
         if (err) {
           return callback(err, null);
         }
@@ -570,6 +570,25 @@ var account = {
   connectFacebook: function(req, res, next){
     return connectSocial('facebook', req, res, next);
   },
+  upload:function(req,res,next){
+  req.app.db.models.Account.findById(req.user.roles.account._id, function(err,account){
+    if(account && req.body.photo){
+      require('./imageHelper').uploadBase64Image('./upload/'+req.user.roles.account._id.toString()+"_profile.jpg",req.body.photo,function(err,result){
+        if(err)
+          res.sendStatus(400,err);
+        else{
+          account.photoUrl = result.secure_url;          
+          account.save(function(err){
+            if(err)
+              return next(err);
+            else
+              res.sendStatus(202);
+          });
+        }
+      });
+    }
+  });
+  }
 
 };
 module.exports = account;

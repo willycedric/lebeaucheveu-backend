@@ -59,13 +59,12 @@ exports.getOne = function(req, res, next) {
  * @return {[type]}        [description]
  */
 exports.updateCustomerPreference = function(req, res, next){
-  var  customer = req.user;
-  //check if the location has already been created
-  
+  var  customerId = req.user.roles.account;  
+  //check if the location has already been created  
   if(req.body.location.hasOwnProperty('_id')){
     var location = req.body.location;
     var query = {   
-      _id: new ObjectID(customer._id),
+      _id: new ObjectID(customerId),
       locations:{
         $elemMatch:{
           _id: new ObjectID(location._id)
@@ -76,9 +75,7 @@ exports.updateCustomerPreference = function(req, res, next){
     req.app.db.models.Account.update(query,{
       $set:{
         "locations.$.type":location.type==1?'main':'secondary',
-        "locations.$.address":location.address,
-        "locations.$.city":location.city,
-        "locations.$.zipcode":location.zipcode
+        "locations.$.address":location.address
       }
     },{
       multi:false
@@ -95,16 +92,20 @@ exports.updateCustomerPreference = function(req, res, next){
       address:req.body.location.address,
       city:req.body.location.city,
       zipcode: req.body.location.zipcode
-      };
-    customer.locations.push(location); 
-    //save the customer profile
-    customer.save(function(err,saved){
-      if(err){
-        return next(err);
-      }else if(saved){
-        res.status(202).json({success:true});
-      }
-    });
+    };
+    req.app.db.models.Account.findById(customerId,function(err,customer){
+      if(err)
+        return next(err);        
+        customer.locations.push(location); 
+        //save the customer profile
+        customer.save(function(err,saved){
+          if(err){
+            return next(err);
+          }else if(saved){
+            res.status(202).json({success:true});
+          }
+        });
+    })    
   }
 };
 /**
@@ -115,16 +116,40 @@ exports.updateCustomerPreference = function(req, res, next){
  * @return {[type]}        [description]
  */
 exports.updateUserProfile = function(req,res,next){
-  var user = req.user;
-  var update = req.body.user;
-  _.merge(user, update);
-  user.save(function(err, saved) {
-    if (err) {
-      next(err);
-    } else {
-      res.json(saved.toJson());
-    }
-  })
+    var sender = req.user;
+    var update = req.body.user;
+    var workflow = req.app.utility.workflow(req, res);
+    workflow.on('updateAccount', function(){
+      req.app.db.models.Account.findById(req.user.roles.account, function(err,customer){
+        if(err)
+          return next(err);
+          _.merge(customer, update.account);
+          customer.save(function(err, saved) {
+            if (err) {
+              next(err);
+            } else {
+               workflow.outcome.account = saved;
+               workflow.emit("updateUser");
+            }
+          });
+      });      
+    });
+    workflow.on('updateUser',function(){
+      req.app.db.models.User.findById(req.user.id,function(err,user){
+      if(err)
+        return next(err);
+        _.merge(user, update.user);
+        user.save(function(err, saved) {
+          if (err) {
+            next(err);
+          } else {
+             workflow.outcome.user = user;
+            return workflow.emit('response');
+          }
+        });
+    }); 
+  });
+  workflow.emit("updateAccount");  
 };
 
 /**
@@ -172,24 +197,27 @@ exports.updateCustomerNotification = function(req, res, next){
  * @return {[type]}        [description]
  */
 exports.updateAppointmentSchema = function (req, res, next){
-      var customer = req.user;
-      customer.nextAppointment.push({
-      _id:req.body.id,
-      haidresserId:req.body.hairdresserId,
-      selectedHour: req.body.selectedHour,
-      hairdresserUsername: req.body.hairdresserUsername,
-      dayOfWeek:req.body.dayOfWeek,
-      createdAt:Date.now(),
-      location:customer.locations[req.body.locationIndex].address+" "+customer.locations[req.body.locationIndex].zipcode+" "+customer.locations[req.body.locationIndex].city
-     });
-      customer.save(function(err,saved){
-      if(err){
-        return next(err)
-      }else{
-        res.json({success:true});
-      }
-    });
-  
+      console.log(req.body);
+      req.app.db.models.Account.findById(req.user.roles.account, function(err,customer){
+        if(err)
+          return next(err);
+        customer.nextAppointment.push({
+          _id:req.body.id,
+          haidresserId:req.body.hairdresserId,
+          selectedHour: req.body.selectedHour,
+          hairdresserUsername: req.body.hairdresserUsername,
+          dayOfWeek:req.body.dayOfWeek,
+          createdAt:Date.now(),
+          location:req.body.locationIndex
+        });
+          customer.save(function(err,saved){
+          if(err){
+            return next(err)
+          }else{
+            res.json({success:true});
+          }
+        });
+      });   
 };
 
 exports.updateAppointmentState=function (req, res, next){
@@ -449,15 +477,18 @@ exports.updateAppointmentStateWithReason = function(req, res, next){
  * @param  {Function} next [description]
  * @return {[type]}        [description]
  */
-exports.removeUserLocation = function(req, res, next){
-  var customer = req.user;
-  console.log('id --> ', req.query.id);
-  customer.locations.remove(req.query.id);
-  customer.save(function(err, saved){
-    if(err){
-      return next(err);
-    }else if(saved){
-      res.status(202).json({success:true});
-    }
-  });
+exports.removeUserLocation = function(req, res, next){    
+    var customerId = req.user.roles.account;
+    req.app.db.models.Account.findById(customerId, function(err, account){
+      if(err)
+        return next(err);
+      account.locations.remove(req.query.id);
+      account.save(function(err, saved){
+        if(err){
+          return next(err);
+        }else if(saved){
+          res.sendStatus(202);
+        }
+      });
+    });
 };

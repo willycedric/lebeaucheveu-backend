@@ -251,7 +251,14 @@ var security = {
   sendCurrentUser: function (req, res, next) {
     //var token = signToken(req.user.id,req.user.name);
     if(req.user){
-      res.status(200).json({user: filterUser(req.user),token:signToken(req.user._id,req.user.name)})
+      var filteredUser = filterUser(req.user);
+      if(filteredUser.hairdresser){       
+        res.status(200).json({user: filteredUser,token:signToken(req.user.id,req.user.name)})
+      }
+      if(filteredUser.account){
+        res.status(200).json({user: filteredUser,token:signToken(req.user.id,req.user.name)})
+      }
+      
     }else{
       res.status(200).json({user: filterUser(req.user)})
     }

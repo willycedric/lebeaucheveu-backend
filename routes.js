@@ -133,26 +133,37 @@ exports = module.exports = function(app, passport) {
   app.get('/api/account/settings/google/disconnect', account.disconnectGoogle);
   app.get('/api/account/settings/facebook/callback', account.connectFacebook);
   app.get('/api/account/settings/facebook/disconnect', account.disconnectFacebook);
+  app.put('/api/account/upload',account.upload);
+  
 
 
 //----------authentication Hairdresser required api ------------------
 
-  app.all('/api/hairdresser*', apiEnsureAuthenticated);
-  app.all('/api/hairdresser*', apiEnsureHairdresser);
-  app.get('/api/hairdresser/verification', hairdresser.upsertVerification);
-  app.post('/api/hairdresser/verification', hairdresser.resendVerification);
+  //app.all('/api/hairdresser*', apiEnsureAuthenticated);
+  //app.all('/api/hairdresser*', function(req,res,next){
+  //  console.log('root hairdresser ensure ');
+ //   next();
+ // },apiEnsureHairdresser);
+  app.get('/api/hairdresser/verification',apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.upsertVerification);
+  app.post('/api/hairdresser/verification', apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.resendVerification);
   app.get('/api/hairdresser/verification/:token/', hairdresser.verify);
-  app.post('/api/hairdresser/upload',hairdresser.upload);
-  app.all('/api/hairdresser/settings*',apiEnsureVerifiedHairdresser);
-  app.get('/api/hairdresser/settings', hairdresser.getAccountDetails);
-  app.put('/api/hairdresser/settings', hairdresser.update);
-  app.put('/api/hairdresser/settings/identity', hairdresser.identity);
-  app.put('/api/hairdresser/settings/password', hairdresser.password);
-  app.get('/api/hairdresser/settings/google/callback', hairdresser.connectGoogle);
-  app.get('/api/hairdresser/settings/google/disconnect', hairdresser.disconnectGoogle);
-  app.get('/api/hairdresser/settings/facebook/callback', hairdresser.connectFacebook);
-  app.get('/api/hairdresser/settings/facebook/disconnect', hairdresser.disconnectFacebook);
+  app.put('/api/hairdresser/upload',apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.upload);
+  app.all('/api/hairdresser/settings*',apiEnsureAuthenticated, apiEnsureHairdresser,apiEnsureVerifiedHairdresser);
+  app.get('/api/hairdresser/settings', apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.getAccountDetails);
+  app.put('/api/hairdresser/settings', apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.update);
+  app.put('/api/hairdresser/settings/identity',apiEnsureAuthenticated, apiEnsureHairdresser, hairdresser.identity);
+  app.put('/api/hairdresser/settings/password', apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.password);
+  app.get('/api/hairdresser/settings/google/callback', apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.connectGoogle);
+  app.get('/api/hairdresser/settings/google/disconnect',apiEnsureAuthenticated, apiEnsureHairdresser, hairdresser.disconnectGoogle);
+  app.get('/api/hairdresser/settings/facebook/callback', apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.connectFacebook);
+  app.get('/api/hairdresser/settings/facebook/disconnect',apiEnsureAuthenticated, apiEnsureHairdresser, hairdresser.disconnectFacebook);
+  app.put('/api/hairdresser/upload/galery',apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.updateGaleryEntry);
+  app.get('/api/hairdresser/galery/entries/:id',apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.findGaleryEntries);
+  app.delete('/api/hairdresser/galery/entries/:id',apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.deleteGaleryEntries);
+  app.put('/api/hairdresser/setting/preference',apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.updatePrefrences);
+ app.get('/api/public/hairdresser/:id',hairdresser.getHairdresserPublicDetails);
 
+  
 
 //---------- Public Blog api ------------------
  app.get("/api/blogs", blog.findBlogs);
