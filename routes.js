@@ -119,21 +119,21 @@ exports = module.exports = function(app, passport) {
   app.post('/api/logout', security.logout);
 
   //-----authentication Account required api-----
-  app.all('/api/account*', apiEnsureAuthenticated);
-  app.all('/api/account*', apiEnsureAccount);
-  app.get('/api/account/verification', account.upsertVerification);
-  app.post('/api/account/verification', account.resendVerification);
-  app.get('/api/account/verification/:token/', account.verify);
-  app.all('/api/account/settings*', apiEnsureVerifiedAccount);
-  app.get('/api/account/settings', account.getAccountDetails);
-  app.put('/api/account/settings', account.update);
-  app.put('/api/account/settings/identity', account.identity);
-  app.put('/api/account/settings/password', account.password);
-  app.get('/api/account/settings/google/callback', account.connectGoogle);
-  app.get('/api/account/settings/google/disconnect', account.disconnectGoogle);
-  app.get('/api/account/settings/facebook/callback', account.connectFacebook);
-  app.get('/api/account/settings/facebook/disconnect', account.disconnectFacebook);
-  app.put('/api/account/upload',account.upload);
+  //app.all('/api/account*', apiEnsureAuthenticated);
+  //app.all('/api/account*', apiEnsureAccount);
+  app.get('/api/account/verification', apiEnsureAuthenticated,apiEnsureAccount, account.upsertVerification);
+  app.post('/api/account/verification',  apiEnsureAuthenticated,apiEnsureAccount,account.resendVerification);
+  app.get('/api/account/verification/:token/', apiEnsureAuthenticated,apiEnsureAccount, account.verify);
+  app.all('/api/account/settings*', apiEnsureAuthenticated,apiEnsureAccount, apiEnsureVerifiedAccount);
+  app.get('/api/account/settings',  apiEnsureAuthenticated,apiEnsureAccount,account.getAccountDetails);
+  app.put('/api/account/settings',  apiEnsureAuthenticated,apiEnsureAccount,account.update);
+  app.put('/api/account/settings/identity',  apiEnsureAuthenticated,apiEnsureAccount,account.identity);
+  app.put('/api/account/settings/password', apiEnsureAuthenticated,apiEnsureAccount, account.password);
+  app.get('/api/account/settings/google/callback',  apiEnsureAuthenticated,apiEnsureAccount,account.connectGoogle);
+  app.get('/api/account/settings/google/disconnect', apiEnsureAuthenticated,apiEnsureAccount, account.disconnectGoogle);
+  app.get('/api/account/settings/facebook/callback',  apiEnsureAuthenticated,apiEnsureAccount,account.connectFacebook);
+  app.get('/api/account/settings/facebook/disconnect', apiEnsureAuthenticated,apiEnsureAccount, account.disconnectFacebook);
+  app.put('/api/account/upload', apiEnsureAuthenticated,apiEnsureAccount,account.upload);
   
 
 

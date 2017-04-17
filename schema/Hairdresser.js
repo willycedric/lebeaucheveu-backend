@@ -24,11 +24,8 @@ exports = module.exports = function(app, mongoose) {
 //         type:Date//appointment update date
 //     }
 // });
-var RelatedCustomerSchema  = new Schema({
-   account: {
-      id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-      name: { type: String, default: '' }
-    }
+var RelatedCustomerSchema  = new Schema({   
+    _id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 });
 
 //user notifications schema 

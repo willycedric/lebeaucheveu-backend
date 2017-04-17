@@ -20,6 +20,7 @@
     "test": "grunt test"
   },
   "dependencies": {
+    "@google/maps": "^0.3.1",
     "async": "^1.x.x",
     "bcrypt": "^0.8.x",
     "body-parser": "^1.x.x",
@@ -40,6 +41,7 @@
     "method-override": "^2.x.x",
     "mongoose": "4.x.x",
     "morgan": "^1.x.x",
+    "node-geocoder": "^3.16.0",
     "passport": "^0.2.x",
     "passport-facebook": "^2.x.x",
     "passport-github": "^0.1.x",

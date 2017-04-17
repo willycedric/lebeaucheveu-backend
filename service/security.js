@@ -6,6 +6,7 @@ var filterUser = function (user) {
     return {
       id: user._id,
       email: user.email,
+      username:user.username,
       //firstName: user.firstName,
       //lastName: user.lastName,
       admin: !!(user.roles && user.roles.admin),

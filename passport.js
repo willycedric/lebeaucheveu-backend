@@ -33,7 +33,8 @@ var opts = {};
 
   
 
- passport.use('user-jwt',new JwtStrategy(opts, function(jwt_payload, done) {    
+ passport.use('user-jwt',new JwtStrategy(opts, function(jwt_payload, done) {  
+   console.log('Inside the user  passport method',jwt_payload);  
     app.db.models.User.findOne({_id: jwt_payload._id}, function(err, user) {
       if (err) {
         return done(err, false);
@@ -48,7 +49,7 @@ var opts = {};
     });
   }));
    passport.use('hairdresser-jwt',new JwtStrategy(opts, function(jwt_payload, done) {
-      console.log('Inside the passport method',jwt_payload);
+      console.log('Inside the hairdresser passport method',jwt_payload);
      app.db.models.User.findOne({_id: jwt_payload._id}, function(err, user) {
       if (err) {
         return done(err, false);

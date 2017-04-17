@@ -53,7 +53,7 @@ exports.getOne = function(req, res, next) {
  * @return {[type]}        [description]
  */
 exports.put = function(req, res, next) {
-  //console.log(req.user.roles.hairdresser,req.body.user.hairdresser._id);
+  //console.log(req.user.roles.hairdresser,req.body.user.req.user.roles.hairdresser);
   var workflow = req.app.utility.workflow(req,res);
     workflow.on('patchHairdresser', function(){ 
       var hairdresser = req.user.roles.hairdresser;      
@@ -116,7 +116,7 @@ exports.updatecategory = function(req,res,next){
   });
   workflow.emit('validate');
 };
-
+//HERE
 /**
  * [updateAppointmentSchema description]
  * @param  {[type]}   req  [description]
@@ -126,7 +126,7 @@ exports.updatecategory = function(req,res,next){
  */
 exports.updateAppointmentSchema = function(req,res,next){
    //req.user contains customer information 
-   console.log('req.user -->', req.user,'location', req.body.location, "hairdresserId", req.body.hairdresserId);
+   console.log('account  -->', req.user._id);
    req.app.db.models.Hairdresser.findById(req.body.hairdresserId, function(err,hairdresser){
       if(err){
         return next(err);
@@ -137,7 +137,7 @@ exports.updateAppointmentSchema = function(req,res,next){
           slotType:0, //temporally
           createdAt:Date.now(),
           relatedCustomers:{
-            account:req.user._id
+            _id:req.user._id
           },
           location:req.body.location
         }; 
@@ -254,13 +254,16 @@ exports.getAWeek = function(req, res, next){
  * @return {[type]}        [description]
  */
 exports.getAppointmentById = function(req, res, next){
-    var hairdresser = req.user;
-    var appointment = hairdresser.appointments.id(req.body.appointmentId);
-    if(appointment){
-      res.status(202).json(appointment);
-    }else{
-      res.status(404);
-    }
+    req.app.db.models.Hairdresser.findById(req.user.roles.hairdresser, function(err, hairdresser){
+        if(err)
+          return next(err);
+          var appointment = hairdresser.appointments.id(req.body.appointmentId);
+        if(appointment){
+          res.status(202).json(appointment);
+        }else{
+          res.status(404);
+        }
+    });    
 };
 
 /**
@@ -271,43 +274,60 @@ exports.getAppointmentById = function(req, res, next){
  * @return {[type]}        [description]
  */
 exports.hairdresserUpdateBooking = function(req,res, next){
-    var hairdresser = req.user;
-    var appointmentLocation = hairdresser.appointments.id(req.body.id).location;
-    var query = {
-                _id : new ObjectID(hairdresser._id), 
-                appointments : {
-                    $elemMatch : {
-                        _id : new ObjectID(req.body.id)
-                    }
-                }
-            };
-      hairdresser.nextbookings.push({_id:req.body.id,customerId:req.body.relatedCustomer._id,customerLastname:req.body.relatedCustomer.customerLastname, customerFirstname:req.body.relatedCustomer.customerFirstname, appointmentHour:req.body.time,
-      appointmentDate:req.body.date,appointmentLocation:appointmentLocation,appointmentState:-1});
+  
+    var workflow = req.app.utility.workflow(req,res);
+    workflow.on('init', function(){
+        req.app.db.models.Hairdresser.findById(req.user.roles.hairdresser, function(err, record){
+          if(err || record==null){
+            return next(err);
+          }                 
+          workflow.outcome.hairdresser = record;
+          workflow.outcome.appointmentLocation = record.appointments.id(req.body.id).location;
+          return workflow.emit('patchBooking');
+      });
+    });
 
-      hairdresser.save(function(err){
-        if(err){
-          return next(err);
-        }else{
-          res.json({success:true});
-        }          
-      });
-     
-     req.app.db.models.Hairdresser.update(query, {
-                $set : {
-                    "appointments.$.slotState" : -1,
-                    "appointments.$.updateAt":Date.now()
-                    }
-            }, {
-                multi : false
-            }, function(err, result){
-                if(err){
-                    //res.status(500).json({error:"the appointment can't be save"});
-                    next(new Error("It seems to have a problem with the appointment registration process ",err));
-                }else if(result){
-                    //res.status(200).json(result);
+    workflow.on('patchBooking', function(){
+      var hairdresser = workflow.outcome.hairdresser;
+      var appointmentLocation = workflow.outcome.appointmentLocation;    
+      var query = {
+            _id : new ObjectID(req.user.roles.hairdresser), 
+            appointments : {
+                $elemMatch : {
+                    _id : new ObjectID(req.body.id)
                 }
-                
-      });
+            }
+        };      
+        hairdresser.nextbookings.push({_id:req.body.id,customerId:req.body.relatedCustomer._id,customerLastname:req.body.relatedCustomer.customerLastname, customerFirstname:req.body.relatedCustomer.customerFirstname, appointmentHour:req.body.time,
+        appointmentDate:req.body.date,appointmentLocation:appointmentLocation,appointmentState:-1});
+        hairdresser.save(function(err){
+          if(err){
+            return next(err);
+          }else{
+          // res.json({success:true});
+          }          
+        });     
+      req.app.db.models.Hairdresser.update(query, {
+                  $set : {
+                      "appointments.$.slotState" : -1,
+                      "appointments.$.updateAt":Date.now()
+                      }
+              }, {
+                  multi : false
+              }, function(err, result){
+                  if(err){
+                      //res.status(500).json({error:"the appointment can't be save"});
+                      next(new Error("It seems to have a problem with the appointment registration process ",err));
+                  }else if(result){
+                      //res.status(200).json(result);
+                  res.status(202).json({success:true});
+                  workflow.outcome.success = true;
+                    //workflow.emit("response");
+
+                  }                
+          });
+    });
+    workflow.emit('init');  
 };
 /**
  * [hairdresserDeleteAppointment remove an appointment based on it's id]
@@ -317,15 +337,28 @@ exports.hairdresserUpdateBooking = function(req,res, next){
  * @return {[type]}        [description]
  */
 exports.hairdresserDeleteAppointment = function(req,res,next){
-  var hairdresser = req.user;
-  hairdresser.appointments.id(req.query.id).remove();
-  hairdresser.save(function(err,saved){
-    if(err){
-      return next(err);
-    }else{
-      res.status(202).json({success:true});
-    }
+  var hairdresserId = req.user.roles.hairdrsser,
+  workflow= req.app.utility.workflow(req,res);
+  workflow.on('init',function(){
+    req.app.db.models.Hairdresser.findById(hairdresserId,function(err,hairdressr){
+      if(err)
+        return next(err);
+      //storing the returned hairdresser account in the outcome object
+      workflow.outcome.hairdresser= hairdresser;
+    });
   });
+  workflow.on('delete', function(){
+    var hairdresser = workflow.outcome.hairdresser;  
+    hairdresser.appointments.id(req.query.id).remove();
+    hairdresser.save(function(err,saved){
+      if(err){
+        return next(err);
+      }else{
+        res.status(202).json({success:true});
+      }
+    });    
+  }); 
+  workflow.emit('init');
 };
 /**
  * [hairdresserDeleteBooking remove a booking based on it's id]
@@ -336,17 +369,15 @@ exports.hairdresserDeleteAppointment = function(req,res,next){
  */
 exports.hairdresserDeleteBooking = function(req,res,next){
   var hairdresser = req.user;
-
   //update the appointment state to 1 --> done
   var query = {
-    _id:new ObjectID(hairdresser._id),
+    _id:new ObjectID(req.user.roles.hairdresser),
     appointments:{
       $elemMatch:{
         _id: new ObjectID(req.query.id)
       }
     }
   };
-
   req.app.db.models.Hairdresser.update(query,{
     $set:{
       "appointments.$.slotState":1
@@ -359,15 +390,18 @@ exports.hairdresserDeleteBooking = function(req,res,next){
     }
   });
   //remove the appointment of the nextbookings document
-  hairdresser.nextbookings.id(req.query.id).remove();
-
-  hairdresser.save(function(err,saved){
-    if(err){
+  req.app.db.models.hairdresser.findById(req.user.roles.hairdresser, function(err,hairdresser){
+    if(err)
       return next(err);
-    }else{
-      res.status(202).json({success:true});
-    }
-  });
+      hairdresser.nextbookings.id(req.query.id).remove();
+      hairdresser.save(function(err,saved){
+        if(err){
+          return next(err);
+        }else{
+          res.status(202).json({success:true});
+        }
+      });
+  });  
 };
 /**
  * [findHairdressers return a list of hairdressers matching the search criteria]
@@ -377,6 +411,7 @@ exports.hairdresserDeleteBooking = function(req,res,next){
  * @return {[type]}        [description]
  */
 exports.findHairdressers =  function(req, res, next){
+  console.log("Find hairdressers parameter ",req.body);
   if ( !String.prototype.includes ) {
   String.prototype.includes = function(search, start) {
     'use strict';
@@ -495,7 +530,7 @@ exports.updateAppointmentStateWithReason = function(req, res, next){
     }, function(hairdresser,callback){
         if(hairdresser){
           var query = {
-            _id: new ObjectID(hairdresser._id),
+            _id: new ObjectID(req.user.roles.hairdresser),
             nextbookings:{
               $elemMatch:{
                 _id:new ObjectID(req.body.id) //appointment id
@@ -534,7 +569,7 @@ exports.updateAppointmentStateWithReason = function(req, res, next){
 exports.updateAppointmentState = function(req,res,next){
   var hairdresser= req.user;
   var query = {
-            _id:hairdresser._id,
+            _id:req.user.roles.hairdresser,
             nextbookings:{
               $elemMatch:{
                 _id:req.body.id //appointment id
@@ -560,10 +595,12 @@ exports.updateAppointmentState = function(req,res,next){
                 res.status(202).json({success:true});
               }
           });
-}
-
-
+};
 exports.findHaircutCatalog = function(req, res,next){
     var hairdresser =req.user.roles.hairdresser; 
-    res.status(200).json(hairdresser.categories.id(req.params.id));  
-}
+    req.app.db.models.Hairdresser.findById(req.user.roles.hairdresser,function(err, hairdresser){
+        if(err)
+          return next(err);
+        res.status(200).json(hairdresser.categories.id(req.params.id)); 
+    });     
+};
