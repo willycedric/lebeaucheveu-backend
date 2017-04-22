@@ -176,14 +176,9 @@ var bookingSchema = new Schema({
   max:2,
   default:1
   },
-  activityArea:{ //Array of area covered by the hairdresser
-    type:Array
-  },
-  areaPostCode:{
-    type:Array
-  }
+  activityArea:[mongoose.modelSchemas.Area] //Array of area covered by the hairdresser
   });
-  hairdresserSchema.plugin(require('./plugins/pagedFind'));
+  hairdresserSchema.plugin(require('./plugins/pagedFind')); 
   hairdresserSchema.index({ user: 1 });
   hairdresserSchema.index({ 'status.id': 1 });
   hairdresserSchema.index({ search: 1 });

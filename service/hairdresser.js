@@ -1,4 +1,5 @@
 'use strict';
+var _ = require('lodash');
 var getCallbackUrl = function(hostname, provider){
   return 'http://' + hostname + '/hairdresser/settings/' + provider + '/callback';
 };
@@ -665,30 +666,46 @@ var hairdresser = {
         res.sendStatus(200);
     });
   },
-  updatePrefrences:function(req,res,next){
-    var hairdresser = req.user.roles.hairdresser;
-   
-    req.body.user.hairdresser.listOfPerformance.forEach(function(elt,ind){
-        if(hairdresser.listOfPerformance.indexOf(elt)==-1){
-          hairdresser.listOfPerformance.push(elt);
-        }
-    });
-    req.body.user.hairdresser.activityArea.forEach(function(elt,ind){
-        if(hairdresser.activityArea.indexOf(elt)==-1){
-          hairdresser.activityArea.push(elt);
-        }
-    });     
-    hairdresser.save(function(err,saved){
-      if(err)
-        return next(err);
-        res.json({data:{hairdresser:saved}});
-    })
 
-   // res.sendStatus(202);
+  updatePrefrences:function(req,res,next){
+    //get the hairdresser account from the request object
+   var hairdresser = req.user.roles.hairdresser;
+   //update hairdresser list of performance
+  req.body.user.hairdresser.listOfPerformance.forEach(function(elt,ind){
+      if(hairdresser.listOfPerformance.indexOf(elt)==-1){
+        hairdresser.listOfPerformance.push(elt);
+      }
+  });
+
+  //update the categories subdocuments
+  if(true){//TODO find a way to know if categories udapte are needed
+    hairdresser.categories=[];//delete all the previous categories
+    req.body.user.hairdresser.categories.forEach(function(elt, index){
+      if(hairdresser.categories.indexOf(elt)==-1){
+        console.log('category name',elt);
+          var data = {
+            name: elt
+          }
+          hairdresser.categories.push(data);
+      }
+    });
+  }else{
+    //TODO notify the hairdresser that the maximum numbers of categories allowed is reached
+    //res.json({success:true});
+  }  
+  //update hairdresser customer type
+  hairdresser.customer_type = req.body.user.hairdresser.customer_type;
+  //save the hairdresser account
+  hairdresser.save(function(err,saved){
+    if(err)
+      return next(err);
+      res.json({data:{hairdresser:saved}});
+  })
+
+  //  res.sendStatus(202);
   },
-  getHairdresserPublicDetails:function(req,res,next){
-  console.log('I a m here');
-  console.log(req.params.id);
+  getHairdresserPublicDetails:function(req,res,next){  
+  
   req.app.db.models.Hairdresser.findById(req.params.id, function(err, hairdresser){
       if(err){       
          return next(err);

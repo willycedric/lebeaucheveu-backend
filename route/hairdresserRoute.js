@@ -19,6 +19,8 @@ module.exports = function(passport){
     router.put('/updatecategory',passport.authenticate('hairdresser-jwt'),controller.updatecategory);
     router.delete('/hairdresserupdatebooking', passport.authenticate('hairdresser-jwt'), controller.hairdresserDeleteAppointment);
     router.delete('/hairdresserbooking', passport.authenticate('hairdresser-jwt'), controller.hairdresserDeleteBooking);
+	router.put('/update/area',passport.authenticate('hairdresser-jwt'),controller.populateCoverArea);
+	router.delete('/delete/area',passport.authenticate('hairdresser-jwt'),controller.deleteArea);
 	router.route('/:id',passport.authenticate('hairdresser-jwt'))
 		.get(controller.getOne)
 		.put(controller.put);

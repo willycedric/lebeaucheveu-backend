@@ -349,7 +349,11 @@ exports.hairdresserDeleteAppointment = function(req,res,next){
   });
   workflow.on('delete', function(){
     var hairdresser = workflow.outcome.hairdresser;  
-    hairdresser.appointments.id(req.query.id).remove();
+    try{
+      hairdresser.appointments.id(req.query.id).remove();
+    }catch(err){
+      return next(err);
+    }    
     hairdresser.save(function(err,saved){
       if(err){
         return next(err);
@@ -410,29 +414,18 @@ exports.hairdresserDeleteBooking = function(req,res,next){
  * @param  {Function} next [description]
  * @return {[type]}        [description]
  */
-exports.findHairdressers =  function(req, res, next){
-  console.log("Find hairdressers parameter ",req.body);
-  if ( !String.prototype.includes ) {
-  String.prototype.includes = function(search, start) {
-    'use strict';
-    if (typeof start !== 'number') {
-      start = 0;
-    } 
-
-    if (start + search.length > this.length) {
-      return false;
-    } else {
-      return this.indexOf(search,start) !== -1;
-    }
-  };
-  }
-  var location = req.body.location;
-  var category = req.body.category;
-  var haircut = req.body.haircut;
-  console.log(req.body.location, req.body.category, req.body.haircut);
-  var listOfAvailableCategories=['cheveux afro','cheveux lisses',"cheveux bouclés"];
-
-  var listOfAvailableCurlyHaircuts = ["Vanilles",
+ exports.findHairdressers  = function(req, res, next){
+    //get the workflow utility
+    var workflow = req.app.utility.workflow(req,res);
+    //grab all the query parameters from the body
+    var category = req.body.category,
+    haircut = req.body.haircut,
+    location = [req.body.longitude, req.body.latitude],
+    location = req.body.location;
+    var distanceMax =20;
+    //get list of availables haircuts and haircuts categories
+    var listOfAvailableCategories=['Cheveux Afro','Cheveux Lisses',"Cheveux Bouclés"];
+    var listOfAvailableCurlyHaircuts = ["Vanilles",
                                       "Tresses (Braids)",
                                       "Crochet braids",
                                       "Tissages",
@@ -447,59 +440,75 @@ exports.findHairdressers =  function(req, res, next){
                                       "Cornrows",
                                       "Tresses enfants"];
 
-  async.waterfall([
-    function(callback){   //build list of hairdresser in the selected location
-      //console.log('inside the first one');
-        var listOfLocatedHairdressers=[];
-        req.app.db.models.Hairdresser.find({}, function(err, hairdressers){
-          if(err){
-            return next (new Error('An error occured when tempting to find all hairdressers'));
-          }else if(!hairdressers){
-            console.error('no available hairdressers');
-          }else{
-              hairdressers.forEach(function(hairdresser){  //build the list of hairdresser in the selected area                
-                  hairdresser.activityArea.forEach(function(area){
-                      if(area.includes(location)){
-                        listOfLocatedHairdressers.push(hairdresser);
-                      }
-                    });                   
-              });
-          
-            callback(null,listOfLocatedHairdressers);
-          }
-        });
-    
-  },
-  function(listOfLocatedHairdressers,callback){ //build list of hairdresser with the appropeiate category;
-      var listOfLocatedAndCategorisedHairdressers=[];
-
-      listOfLocatedHairdressers.forEach(function(hairdresser){
-        hairdresser.categories.forEach(function(elt){         
-          if(elt.name.toUpperCase() == listOfAvailableCategories[parseInt(category)].toUpperCase()){
-            listOfLocatedAndCategorisedHairdressers.push(hairdresser);
-            //console.log('here -->',hairdresser);
-          }
-        });
-      });
-      callback(null,listOfLocatedAndCategorisedHairdressers);
-  },
-  function(listOfLocatedAndCategorisedHairdressers,callback){ //build list of hairdressers who are able to perform the haircut selected
-    var listOfSelectedHairdressers=[];
-    listOfLocatedAndCategorisedHairdressers.forEach(function(hairdresser){      
-      if(hairdresser.listOfPerformance.indexOf(listOfAvailableCurlyHaircuts[parseInt(haircut)])!=-1){
-        listOfSelectedHairdressers.push(hairdresser);        
-      }
+    console.log("body ",req.body);
+    //init query paramerters
+    workflow.on('init', function(){
+         var temp = [];
+         //open a generic mongoose query
+        workflow.outcome.query = req.app.db.models.Hairdresser.find({});
+        workflow.outcome.distance =5; 
+        workflow.outcome.temp=  [];
+       workflow.outcome.temp.push(listOfAvailableCurlyHaircuts[haircut]);
+        //set the default distance of 10KM
+       return workflow.emit('query');
     });
-    callback(null,listOfSelectedHairdressers);
-  },
-  function(listOfSelectedHairdressers){
-      res.json(listOfSelectedHairdressers.map(function(hairdresser){
-        console.log(hairdresser.name);
-        return hairdresser;
-      }))
-    }
-  ]);  
-}
+    //compose the query
+    workflow.on('query', function(){
+       //query where the desired haircut's category match the one specified in the query
+        console.log("selected category ", listOfAvailableCategories[category]);
+        workflow.outcome.query = workflow.outcome.query.where('categories.name').equals(listOfAvailableCategories[category].toUpperCase()); //TODO uppercase the category name
+        //query where the  hairdressers who can performed the desired haircuts
+        workflow.outcome.query = workflow.outcome.query.where('listOfPerformance').in(workflow.outcome.temp);
+        // Using MongoDB's geospatial querying features. (Note how coordinates are set [long, lat]
+        workflow.outcome.query = workflow.outcome.query.where('activityArea.location').near({center:{type:'Point', coordinates:[req.body.longitude, req.body.latitude]},
+            //distance in meters
+            maxDistance:workflow.outcome.distance*1000,spherical:true});
+            return workflow.emit('exec');
+      });
+    //relaunch the query after increasing by 5KM until 20KM
+    workflow.on('increase', function(){
+      console.log('inside the increase');
+      console.log("before distance distance ",workflow.outcome.distance );
+        workflow.outcome.distance+=5;
+        console.log("after distance increase", workflow.outcome.distance);
+        if( workflow.outcome.distance >=distanceMax){
+            return workflow.emit('exec');
+        }else{
+          return workflow.emit('query');
+        }
+    });
+    //return the matching hairdressers
+    workflow.on('exec', function(){
+      var structuredResult=[];
+      workflow.outcome.query.exec(function(err, hairdressers){
+      if(err)
+        return next(err);
+      console.log("Number of matching hairdresser(s)",hairdressers.length);
+      if(hairdressers.length < 1 && workflow.outcome.distance <=distanceMax){        
+        return workflow.emit('increase');
+      }
+      console.log('distance', workflow.outcome.distance);
+      if(hairdressers.length >=1){        
+        var data ={};
+        hairdressers.forEach(function(hairdresser){         
+          data.profile_picture = hairdresser.profile_picture;
+          data._id = hairdresser._id;
+          hairdresser.activityArea.forEach(function(area){
+            var distance = req.app.utility.distance(req.body.longitude, req.body.latitude,area.longitude,area.latitude,'K');
+            console.log("computed distance in KM ", distance);
+           if(distance<=workflow.outcome.distance){
+             data.location = area.formatted_address;
+           }                   
+          });
+        });
+        structuredResult.push(data);
+      }
+      console.log("Length of the structured result(s) ",structuredResult.length);
+      res.json(structuredResult);
+    });
+  });
+  workflow.emit('init');
+ }
 
 /**
  * [updateAppointmentStateWithReason Function used to set an appointment state with reason]
@@ -603,4 +612,64 @@ exports.findHaircutCatalog = function(req, res,next){
           return next(err);
         res.status(200).json(hairdresser.categories.id(req.params.id)); 
     });     
+};
+/**
+ * Populate the hairdresser's activityArea subdocument
+ */
+exports.populateCoverArea = function(req,res,next){
+  console.log('inside this function'); 
+  var hairdresserId= req.user.roles.hairdresser;
+  console.log(req.user.roles.hairdresser); 
+  var workflow = req.app.utility.workflow(req,res);
+  workflow.on('validate', function(){
+     req.app.db.models.Hairdresser.findById(hairdresserId,function(err,hairdresser){
+        if(err)
+          return next(err);
+          if(hairdresser.activityArea.length == 0){
+            workflow.outcome.hairdresser = hairdresser;
+            return workflow.emit('patchArea');
+          }else{
+            hairdresser.activityArea.forEach(function(area){
+              if(area.hasOwnProperty("formatted_address")){
+                if(area.formatted_address.toUpperCase() == req.body.area.formatted_address.toUpperCase()){
+                  return res.status(202).json({success:true});
+                }
+              }              
+            });
+          }
+          workflow.outcome.hairdresser = hairdresser;
+          return workflow.emit('patchArea');       
+      });
+  });
+  workflow.on('patchArea',function(){
+    var hairdresser = workflow.outcome.hairdresser;
+    hairdresser.activityArea.push(req.body.area);
+    hairdresser.save(function(err,saveed){
+      if(err)
+        return next(err);
+      res.status(202).json({success:true});
+    })
+  });
+  workflow.emit('validate'); 
+};
+
+exports.deleteArea = function(req, res, next){
+  var hairdresserId= req.user.roles.hairdresser;
+  req.app.db.models.Hairdresser.findById(hairdresserId, function(err,hairdresser){
+      if(err)
+        return next(err);
+      try{
+         hairdresser.activityArea.id(req.query.id).remove();
+      }
+      catch(err){
+        return next(err);
+      }finally{
+         
+      }
+      hairdresser.save(function(err, saved){
+        if(err)
+          return next(err);
+        res.status(202).json({success:true});
+      });
+  });
 };

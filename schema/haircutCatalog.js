@@ -4,7 +4,7 @@ exports = module.exports = function(app, mongoose) {
   var haircutCatalogSchema = new mongoose.Schema({
     name:{
     type:String,
-    default:""
+    uppercase:true
   },
   createdAt:{
     type:Date,

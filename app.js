@@ -129,6 +129,7 @@ app.utility.sendmail = require('./util/sendmail');
 app.utility.slugify = require('./util/slugify');
 app.utility.workflow = require('./util/workflow');
 app.utility.geocoder = require('./util/geocoder');
+app.utility.distance = require('./util/distance');
 
 //listen up
 app.server.listen(app.config.port, function(){
