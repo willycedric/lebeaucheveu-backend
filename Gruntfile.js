@@ -234,7 +234,8 @@ module.exports = function(grunt) {
   grunt.registerTask('unitTest', ['clean', 'angular', 'karma:unit']);
   grunt.registerTask('test', ['clean', 'lint']);
 
-  grunt.registerTask('dev', ['clean', 'angular', 'concurrent']);
+  //grunt.registerTask('dev', ['clean', 'angular', 'concurrent']);
+  grunt.registerTask('dev', ['clean', 'concurrent']);
   grunt.registerTask('production', ['clean', 'angular', 'useminPrepare', 'concat:generated', 'uglify:generated', 'cssmin:generated', 'usemin']);
 
   grunt.registerTask('default', ['dev']);
