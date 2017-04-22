@@ -490,18 +490,20 @@ exports.hairdresserDeleteBooking = function(req,res,next){
       console.log('distance', workflow.outcome.distance);
       if(hairdressers.length >=1){        
         var data ={};
-        hairdressers.forEach(function(hairdresser){         
+        hairdressers.forEach(function(hairdresser, index){
+          data={};   
           data.profile_picture = hairdresser.profile_picture;
           data._id = hairdresser._id;
           hairdresser.activityArea.forEach(function(area){
             var distance = req.app.utility.distance(req.body.longitude, req.body.latitude,area.longitude,area.latitude,'K');
-            console.log("computed distance in KM ", distance);
+            console.log("computed distance in KM for haidresser  ",(index+1),'-->', distance);
            if(distance<=workflow.outcome.distance){
              data.location = area.formatted_address;
            }                   
           });
+         structuredResult.push(data);
         });
-        structuredResult.push(data);
+       
       }
       console.log("Length of the structured result(s) ",structuredResult.length);
       res.json(structuredResult);
