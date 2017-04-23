@@ -14,6 +14,9 @@ exports.loginAttempts = {
   forIpAndUser: 7,
   logExpiration: '20m'
 };
+exports.front={
+  url:"https://lebeaucheveu.herokuapp.com"
+};
 exports.requireAccountVerification = false;
 exports.smtp = {
   from: {
