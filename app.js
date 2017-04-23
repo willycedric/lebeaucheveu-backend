@@ -64,7 +64,7 @@ app.use(passport.session());
 //app.use(csrf({ cookie: { signed: true } }));
 
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "http://localhost:4500");
+  res.header("Access-Control-Allow-Origin", app.config.front.url);
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
   res.header("Access-Control-Allow-Methods", "GET, POST, DELETE,PUT");
   res.header("Access-Control-Allow-Credentials", "true"); 
