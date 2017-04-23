@@ -1,1 +1,1 @@
-web: grunt
+web: nodemon app.js
