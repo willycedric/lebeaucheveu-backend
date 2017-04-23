@@ -1,19 +1,14 @@
 {
-  "name": "angular-drywall",
-  "description": "A MEAN stack User Management web app",
-  "version": "0.1.10",
+  "name": "LeBeauCheveu",
+  "description": "An online haircut shop",
+  "version": "1.0.0",
   "keywords": [
-    "angular",
-    "drywall"
+    "haircut",
+    "fashion"
   ],
-  "license": "MIT",
   "author": {
-    "name": "Arthur C. Kao",
-    "email": "arthurckao@gmail.com"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/arthurkao/angular-drywall"
+    "name": "LeBeauCheveu",
+    "email": "lebeaucheveu.dev@gmail.com"
   },
   "scripts": {
     "start": "node app.js",
@@ -25,6 +20,7 @@
     "bcrypt": "^0.8.x",
     "body-parser": "^1.x.x",
     "cloudinary": "^1.8.0",
+    "colors": "^1.1.2",
     "compression": "^1.x.x",
     "connect-mongo": "^0.8.x",
     "cookie-parser": "^1.x.x",
