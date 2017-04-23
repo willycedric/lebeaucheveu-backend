@@ -3,11 +3,11 @@
 exports.hostname = process.env.hostname || 'https://lebeaucheveu-api.herokuapp.com';
 exports.port = process.env.PORT || 3000;
 exports.mongodb = {
-  uri: process.env.MONGOLAB_URI || process.env.MONGOHQ_URL || '{{MONGO_URI}}'
+  uri: process.env.MONGOLAB_URI || process.env.MONGOHQ_URL || 'mongodb://heroku_qlb97506:revb8a0g8nj70fvsiki639lah0@ds049496.mlab.com:49496/heroku_qlb97506'
 };
 exports.companyName = 'LeBeauCheveu';
 exports.projectName = 'lebeaucheveu';
-exports.systemEmail = '{{ADMIN_EMAIL}}';
+exports.systemEmail = 'lebeaucheveu.dev@gmail.com';
 exports.cryptoKey = 'k3yb0ardc4t';
 exports.loginAttempts = {
   forIp: 50,
@@ -18,7 +18,7 @@ exports.requireAccountVerification = false;
 exports.smtp = {
   from: {
     name: process.env.SMTP_FROM_NAME || exports.projectName +' Website',
-    address: process.env.SMTP_FROM_ADDRESS || '{{ADMIN_EMAIL}}'
+    address: process.env.SMTP_FROM_ADDRESS || 'lebeaucheveu.dev@gmail.com'
   },
   credentials: {
     user: process.env.SMTP_USERNAME || '{{SMTP_EMAIL}}',

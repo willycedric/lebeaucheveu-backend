@@ -14,7 +14,7 @@ workflow.on('collectUserInput', function(){
           type: 'string',                 // Specify the type of input to expect.
           pattern: /^\w+$/,
           message: 'Username must be letters',
-          default: 'root'
+          default: 'LeBeauCheveu'
         },
         email: {
           description: 'email',
@@ -62,7 +62,7 @@ workflow.on('collectUserInput', function(){
         database: {
           description: 'MongoDB database',
           type: 'string',
-          default: 'angular-drywall'
+          default: 'lebeaucheveu'
         },
         user: {
           description: 'MongoDB user',
@@ -91,39 +91,6 @@ workflow.on('collectUserInput', function(){
       };
       cb();
     });
-  }, function(cb){
-    //3. smtp email server and password
-    console.log('=====(Optional) Set smtp server credential (to send notification email)=====');
-    var schema = {
-      properties: {
-        email: {
-          description: 'smtp username',
-          default: workflow.admin.email
-        },
-        password: {
-          description: 'smtp password',
-          type: 'string',
-          hidden: true
-        },
-        host: {
-          description: 'smtp server host',
-          type: 'string',
-          default: 'smtp.gmail.com'
-        }
-      }
-    };
-    prompt.start();
-    prompt.get(schema, function (err, result) {
-      if(err){
-        return cb(err);
-      }
-      workflow.smtp = {
-        email:    result.email,
-        password: result.password,
-        host:     result.host
-      };
-      cb();
-    });
   }], function(err, res){
     if(err){
       console.log('Error collecting config info, please try again.');
@@ -143,6 +110,7 @@ workflow.on('checkDbConnection', function(){
   }
   uri = uri.concat([workflow.mongo.host, ':', workflow.mongo.port, '/', workflow.mongo.database]).join('');
   workflow.mongo.uri = uri;
+  console.log("mong uri",workflow.mongo.uri);
   require('mongodb').MongoClient.connect(uri, function(err, db) {
     if(err){
       console.log('error connecting to db, please verify Mongodb setting then try again.');
@@ -243,13 +211,10 @@ workflow.on('generateConfigJS', function(){
     },
     function(content, cb){
       // find and replace with information collected
-      var smtpEnabled = !!workflow.smtp.password;
+      
       var map = {
         '{{MONGO_URI}}': workflow.mongo.uri,
-        '{{ADMIN_EMAIL}}': workflow.admin.email,
-        '{{SMTP_EMAIL}}': smtpEnabled? workflow.smtp.email: '',
-        '{{SMTP_PASSWORD}}': smtpEnabled? workflow.smtp.password: '',
-        '{{SMTP_HOST}}': smtpEnabled? workflow.smtp.host: ''
+        '{{ADMIN_EMAIL}}': workflow.admin.email
       };
       for(var key in map){
         if(map.hasOwnProperty(key)){
@@ -277,7 +242,7 @@ workflow.on('complete', function(){
   if(workflow.db){
     workflow.db.close();
   }
-  console.log('=====Angular-Drywall initialization complete=====');
+  console.log('=====LeBeauCheveu initialization complete=====');
   process.exit(0);
 });
 
