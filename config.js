@@ -1,9 +1,11 @@
 'use strict';
 
-exports.hostname = process.env.hostname || 'https://lebeaucheveu-api.herokuapp.com';
-exports.port = process.env.PORT || 3000;
+//exports.hostname = process.env.hostname || 'https://lebeaucheveu-api.herokuapp.com';
+exports.hostname = process.env.hostname ||'localhost'
+exports.port = process.env.PORT || 3500;
 exports.mongodb = {
   uri: process.env.MONGOLAB_URI || process.env.MONGOHQ_URL || 'mongodb://heroku_qlb97506:revb8a0g8nj70fvsiki639lah0@ds049496.mlab.com:49496/heroku_qlb97506'
+  //uri:process.env.MONGOLAB_URI || process.env.MONGOHQ_URL || 'mongodb://localhost:27017/angular-drywall'
 };
 exports.companyName = 'LeBeauCheveu';
 exports.projectName = 'lebeaucheveu';
@@ -15,7 +17,8 @@ exports.loginAttempts = {
   logExpiration: '20m'
 };
 exports.front={
-  url:"https://lebeaucheveu.herokuapp.com"
+  //url:"http://localhost:4500"
+  url:"lebeaucheveu.herokuapp.com"
 };
 exports.requireAccountVerification = false;
 exports.smtp = {
@@ -29,6 +32,11 @@ exports.smtp = {
     host: process.env.SMTP_HOST || '{{SMTP_HOST}}',
     ssl: true
   }
+};
+exports.cloudinary={
+  cloud_name: "lebeaucheveu",
+  api_key: "345113751212874",
+  api_secret: "ALKkfB5Ii0Wtd4H10VYf9OZDR1E"
 };
 exports.webToken = {
   // 10 days in minutes

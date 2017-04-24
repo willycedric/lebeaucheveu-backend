@@ -494,6 +494,7 @@ exports.hairdresserDeleteBooking = function(req,res,next){
           data={};   
           data.profile_picture = hairdresser.profile_picture;
           data._id = hairdresser._id;
+          data.username = hairdresser.user.name||"default";
           hairdresser.activityArea.forEach(function(area){
             var distance = req.app.utility.distance(req.body.longitude, req.body.latitude,area.longitude,area.latitude,'K');
             console.log("computed distance in KM for haidresser  ",(index+1),'-->', distance);

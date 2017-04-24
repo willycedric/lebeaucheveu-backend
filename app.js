@@ -62,7 +62,6 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 //app.use(csrf({ cookie: { signed: true } }));
-console.log("connection uri",app.config.front.url);
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", app.config.front.url);
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
