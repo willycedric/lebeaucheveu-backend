@@ -21,7 +21,7 @@ var app = express();
 
 //keep reference to config
 app.config = config;
-
+var debug = require('debug')('expressdebug:server');
 //setup the web server
 app.server = http.createServer(app);
 
@@ -70,7 +70,6 @@ app.use(function(req, res, next) {
   next();
 
 });
-
 //handle file upload
 /*app.put("/api/hairdresser/upload", function(req,res,next){
   req.app.db.models.Hairdresser.findById(req.user.roles.hairdresser._id, function(err,hairdresser){
@@ -129,8 +128,8 @@ app.utility.slugify = require('./util/slugify');
 app.utility.workflow = require('./util/workflow');
 app.utility.geocoder = require('./util/geocoder');
 app.utility.distance = require('./util/distance');
-
+app.debug = debug;
 //listen up
 app.server.listen(app.config.port, function(){
-  //and... we're live
+  app.debug("and... we're live on port ",app.config.port);
 });

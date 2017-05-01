@@ -34,6 +34,9 @@ exports.webToken = {
     jwt: process.env.JWT || 'M54H8YFGUI0QS4BSHBDJTC3RJ6LS4ZC30V7P1KKFC3EZBRK1T5DGQB20MQT8RVFZIQG5XL6YVWQBASNP2OZ8ICT4D3ZB25NYMRY9'
   }
 };
+exports.front={
+  url:"https://lebeaucheveu.herokuapp.com"
+};
 exports.oauth = {
   twitter: {
     // Not yet implemented

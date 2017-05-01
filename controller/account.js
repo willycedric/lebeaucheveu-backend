@@ -309,7 +309,8 @@ exports.updateCustomerPreference = function(req, res, next){
             if(err){
               return next(err);
             }else if(user){
-              if(user.nextAppointment.id(appointmentId) !== undefined){
+              var currentAppointment=user.nextAppointment.id(appointmentId);
+              if(user.nextAppointment.id(appointmentId) !== undefined){                
                 var notification = 'Votre rendez-vous du '+(currentAppointment.dayOfWeek).toLocaleDateString()+' à '+currentAppointment.selectedHour+' a été refusé par '+currentAppointment.hairdresserUsername+'. Nous vons prions de prendre un autre rendez-vous. Merci pour votre compréhension.';
                 user.notifications.push({message:notification});
                 user.nextAppointment.id(appointmentId).remove();

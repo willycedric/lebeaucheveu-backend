@@ -137,7 +137,7 @@ exports.updateAppointmentSchema = function(req,res,next){
           slotType:0, //temporally
           createdAt:Date.now(),
           relatedCustomers:{
-            _id:req.user._id
+            username:req.user.username
           },
           location:req.body.location
         }; 
@@ -165,14 +165,19 @@ exports.updateAppointmentSchema = function(req,res,next){
 exports.lockedHairdressertimeslot = function(req,res,next){
   var hairdresser = req.user;
   var newDate = new Date();
-  hairdresser.appointments.push({dayOfWeek:req.body.date,slotState:1,slotType:-1, createdAt:newDate});
-  hairdresser.save(function(err,saved){
-          if(err){
-            return next(err);
-          }else if(saved){
-            res.status(202).json({success:true});
-          }
-        });
+  req.app.db.models.Hairdresser.findById(req.user.roles.hairdresser, function(err, hairdresser){
+    if(err)
+      return next(err);
+      hairdresser.appointments.push({dayOfWeek:req.body.date,slotState:1,slotType:-1, createdAt:newDate});
+      hairdresser.save(function(err,saved){
+              if(err){
+                return next(err);
+              }else if(saved){
+                res.status(202).json({success:true});
+              }
+            });
+  });
+  
 };
 
 
@@ -337,14 +342,15 @@ exports.hairdresserUpdateBooking = function(req,res, next){
  * @return {[type]}        [description]
  */
 exports.hairdresserDeleteAppointment = function(req,res,next){
-  var hairdresserId = req.user.roles.hairdrsser,
+  var hairdresserId = req.user.roles.hairdresser,
   workflow= req.app.utility.workflow(req,res);
   workflow.on('init',function(){
-    req.app.db.models.Hairdresser.findById(hairdresserId,function(err,hairdressr){
+    req.app.db.models.Hairdresser.findById(hairdresserId,function(err,hairdresser){
       if(err)
         return next(err);
       //storing the returned hairdresser account in the outcome object
       workflow.outcome.hairdresser= hairdresser;
+      return workflow.emit('delete');
     });
   });
   workflow.on('delete', function(){

@@ -2,32 +2,6 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 exports = module.exports = function(app, mongoose) {
-
-  //Schema containing informations about customer who have made an reservation
-// var RelatedCustomerSchema  = new Schema({
-//     customerUsername:{ //The customer name
-//       type:String
-//     },
-//     customerFirstname:{
-//       type:String
-//     },
-//     customerLastname:{
-//       type:String
-//     },
-//     customerLocation:{
-//       type:String
-//     },
-//     createdAt:{
-//         type: Date //appointment creation date
-//     },
-//     updatedAt:{
-//         type:Date//appointment update date
-//     }
-// });
-var RelatedCustomerSchema  = new Schema({   
-    _id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
-});
-
 //user notifications schema 
 var NotificationSchema = new Schema ({
     title:{
@@ -61,7 +35,9 @@ var HairdresserAppointmentSchema = new Schema({
   dayOfWeek:{
     type:Date
   },
-relatedCustomers:RelatedCustomerSchema,//customer with an appointment
+relatedCustomers:{
+type:String //related customer username
+},
 createdAt:{ //appointment creatioon date
   type:Date
 },
