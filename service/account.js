@@ -548,6 +548,8 @@ var account = {
           id: req.user._id,
           email: req.user.email,
           admin: !!(req.user.roles && req.user.roles.admin),
+          account: !!(req.user.roles && req.user.roles.account),
+          hairdresser:!!(req.user.roles && req.user.roles.hairdresser),
           isVerified: true
         };
         return res.status(200).json(outcome);

@@ -132,7 +132,9 @@ var accountSchema = new Schema({
     },
     locations:[locationSchema],
     nextAppointment:[appointmentSchema],
-    notifications:[NotificationSchema]
+    notifications:[NotificationSchema],
+    resetPasswordToken:String,
+    resetPasswordExpires:Date
   });
   accountSchema.plugin(require('./plugins/pagedFind'));
   accountSchema.index({ user: 1 });

@@ -1,7 +1,7 @@
 'use strict';
 
 exports.hostname = process.env.hostname || 'https://lebeaucheveu-api.herokuapp.com';
-exports.port = process.env.PORT || 3000;
+exports.port = process.env.PORT || 3500;
 exports.mongodb = {
   uri: process.env.MONGOLAB_URI || process.env.MONGOHQ_URL || '{{MONGO_URI}}'
 };
@@ -34,8 +34,12 @@ exports.webToken = {
     jwt: process.env.JWT || 'M54H8YFGUI0QS4BSHBDJTC3RJ6LS4ZC30V7P1KKFC3EZBRK1T5DGQB20MQT8RVFZIQG5XL6YVWQBASNP2OZ8ICT4D3ZB25NYMRY9'
   }
 };
+exports.sendgrid={
+      key:"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"
+};
 exports.front={
   url:"https://lebeaucheveu.herokuapp.com"
+  //url:"http://localhost:4500"
 };
 exports.oauth = {
   twitter: {

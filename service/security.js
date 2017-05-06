@@ -250,7 +250,6 @@ var socialLogin = function(provider, req, res, next){
 
 var security = {
   sendCurrentUser: function (req, res, next) {
-    //var token = signToken(req.user.id,req.user.name);
     if(req.user){
       var filteredUser = filterUser(req.user);
       if(filteredUser.hairdresser){       
@@ -382,7 +381,7 @@ var security = {
           if (err) {
             return workflow.emit('exception', err);
           }
-          workflow.emit('sendWelcomeEmail');
+          workflow.emit('generateToken', account);
         });
       });
     });
@@ -410,22 +409,76 @@ var security = {
           if (err) {
             return workflow.emit('exception', err);
           }
-          workflow.emit('sendWelcomeEmail');
+          workflow.emit('generateToken', hairdresser);
+        });
+      });
+    });
+    
+    workflow.on('generateToken', function(account) {
+      var crypto = require('crypto');
+      crypto.randomBytes(21, function(err, buf) {
+        if (err) {
+          return next(err);
+        }
+
+        var token = buf.toString('hex');
+        req.app.db.models.User.encryptPassword(token, function(err, hash) {
+          if (err) {
+            return next(err);
+          }
+
+          workflow.emit('patchAccount', token, hash,account);
         });
       });
     });
 
-    workflow.on('sendWelcomeEmail', function() {
+    workflow.on('patchAccount', function(token, hash,account) {
+      var fieldsToSet = { verificationToken: hash };
+      account.verificationToken = hash;
+      account.save(function(err){
+          if(err)
+            return next(err);
+          return workflow.emit('sendWelcomeEmail',hash);
+      });
+      // req.app.db.models.Account.findByIdAndUpdate(req.user.roles.account.id, fieldsToSet, function(err, account) {
+      //   if (err) {
+      //     return workflow.emit('exception', err);
+      //   }
+
+      //   sendVerificationEmail(req, res, {
+      //     email: req.user.email,
+      //     verificationToken: token,
+      //     onSuccess: function() {
+      //       return workflow.emit('sendWelcomeEmail',token);
+      //     },
+      //     onError: function(err) {
+      //       return next(err);
+      //     }
+      //   });
+      // });
+    });
+    workflow.on('sendWelcomeEmail', function(token) {
+       var user = workflow.user;
+       var bulk = req;
+       console.log(" build hash token ", token);    
+      var origin = req.headers.origin;
+      var sub = (!!(user.roles&&user.roles.account))?"/#/account/verification/":"/#/hairdresser/verification/";
+      var url = origin.toString()+"/"+sub.toString()+token.toString();
+       console.log("query protocol ", req.protocol);
+       console.log("query origin ", req.headers.origin);
+       console.log("is account ", (!!(user.roles&&user.roles.account)) );
+       console.log("build url ", url);
+       console.log(" verification link", req.protocol +'://'+ req.headers.origin +(!!(user.roles&&user.roles.account))?'/#/account/verification/':'/#/hairdresser/verification/' + token)
       req.app.utility.sendmail(req, res, {
-        from: req.app.config.smtp.from.name +' <'+ req.app.config.smtp.from.address +'>',
+        from: req.app.config.provider.name +' <'+ req.app.config.provider.address +'>',
         to: req.body.email,
-        subject: 'Your '+ req.app.config.projectName +' Account',
-        textPath: 'signup/email-text',
-        htmlPath: 'signup/email-html',
+        subject: 'Votre compte '+ req.app.config.projectName,
+        textPath: 'account/verification/email-text',
+        htmlPath: 'account/verification/email-html',
         locals: {
           username: req.body.username,
           email: req.body.email,
-          loginURL: req.protocol +'://'+ req.headers.host +'/login/',
+          verifyURL: url,
           projectName: req.app.config.projectName
         },
         success: function(message) {
@@ -436,6 +489,7 @@ var security = {
           workflow.emit('logUserIn');
         }
       });
+      
     });
 
     workflow.on('logUserIn', function() {

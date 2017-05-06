@@ -128,6 +128,8 @@ app.utility.slugify = require('./util/slugify');
 app.utility.workflow = require('./util/workflow');
 app.utility.geocoder = require('./util/geocoder');
 app.utility.distance = require('./util/distance');
+app.utility.sendActivationMail = require('./util/sendActivationMail');
+app.utility.accountActivation = require('./util/accountActivation');
 app.debug = debug;
 //listen up
 app.server.listen(app.config.port, function(){

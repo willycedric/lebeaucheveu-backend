@@ -27,7 +27,7 @@
     "cors": "^2.8.1",
     "csurf": "^1.x.x",
     "emailjs": "^0.3.x",
-    "express": "^4.12.x",
+    "express": "4.15.2",
     "express-session": "^1.x.x",
     "helmet": "^0.9.x",
     "jade": "^1.x.x",
@@ -49,6 +49,7 @@
     "passport-twitter": "^1.x.x",
     "prompt": "^0.2.14",
     "sanitize-html": "^1.14.1",
+    "sendgrid": "^5.0.1",
     "serve-static": "^1.9.x"
   },
   "devDependencies": {
