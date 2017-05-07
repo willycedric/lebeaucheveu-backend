@@ -125,8 +125,7 @@ exports.updatecategory = function(req,res,next){
  * @return {[type]}        [description]
  */
 exports.updateAppointmentSchema = function(req,res,next){
-   //req.user contains customer information 
-   console.log('account  -->', req.user._id);
+   //req.user contains customer information   
    req.app.db.models.Hairdresser.findById(req.body.hairdresserId, function(err,hairdresser){
       if(err){
         return next(err);
@@ -136,9 +135,7 @@ exports.updateAppointmentSchema = function(req,res,next){
           dayOfWeek:req.body.dayOfWeek,
           slotType:0, //temporally
           createdAt:Date.now(),
-          relatedCustomers:{
-            username:req.user.username
-          },
+          relatedCustomers:req.user.username,          
           location:req.body.location
         }; 
         //populate the hairdresser appointment array

@@ -14,6 +14,11 @@ exports.loginAttempts = {
   forIpAndUser: 7,
   logExpiration: '20m'
 };
+exports.cloudinary={
+  cloud_name: "lebeaucheveu",
+  api_key: "345113751212874",
+  api_secret: "ALKkfB5Ii0Wtd4H10VYf9OZDR1E"
+};
 exports.requireAccountVerification = false;
 exports.smtp = {
   from: {

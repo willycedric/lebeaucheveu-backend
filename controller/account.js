@@ -243,6 +243,7 @@ exports.updateCustomerPreference = function(req, res, next){
     };
     //HERE CUSTOMER
     exports.updateAppointmentState=function (req, res, next){
+      console.log("userId", req.body.userId);
       var workflow = req.app.utility.workflow(req, res);
       workflow.on('init', function(){
         req.app.db.models.User.findById(req.body.userId, function(err, user){
