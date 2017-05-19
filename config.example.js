@@ -62,7 +62,7 @@ exports.oauth = {
     secret: process.env.GITHUB_OAUTH_SECRET || ''
   },
   google: {
-    key: process.env.GOOGLE_OAUTH_KEY || '',
+    key: process.env.GOOGLE_OAUTH_KEY || 'AIzaSyBhCRyAbEtHG-O98Qywo9ft2FUtL8qzwBo',
     secret: process.env.GOOGLE_OAUTH_SECRET || ''
   },
   tumblr: {

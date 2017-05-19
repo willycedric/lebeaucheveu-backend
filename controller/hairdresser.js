@@ -447,13 +447,31 @@ exports.hairdresserDeleteBooking = function(req,res,next){
     //init query paramerters
     workflow.on('init', function(){
          var temp = [];
-         //open a generic mongoose query
-        workflow.outcome.query = req.app.db.models.Hairdresser.find({});
-        workflow.outcome.distance =5; 
-        workflow.outcome.temp=  [];
-       workflow.outcome.temp.push(listOfAvailableCurlyHaircuts[haircut]);
-        //set the default distance of 10KM
-       return workflow.emit('query');
+         //query google api for longitude and latitude in case they are not provided by the front end query
+         if(req.body.latitude == null || req.body.longitude == null){
+           console.log("in Here", req.body.location);
+           req.app.utility.geocoder().geocode(req.body.location)
+           .then(function(rep){
+              console.log("Google geocoder ", rep[0].latitude, rep[0].longitude);
+              //open a generic mongoose query
+              workflow.outcome.query = req.app.db.models.Hairdresser.find({});
+              workflow.outcome.distance =5; 
+              workflow.outcome.temp=  [];
+              workflow.outcome.longitude = rep[0].longitude;
+              workflow.outcome.latitude= rep[0].latitude;
+              workflow.outcome.temp.push(listOfAvailableCurlyHaircuts[haircut]);
+              //set the default distance of 10KM
+              return workflow.emit('query');
+           });
+         }else{
+            //open a generic mongoose query
+            workflow.outcome.query = req.app.db.models.Hairdresser.find({});
+            workflow.outcome.distance =5; 
+            workflow.outcome.temp=  [];
+            workflow.outcome.temp.push(listOfAvailableCurlyHaircuts[haircut]);
+            //set the default distance of 10KM
+          return workflow.emit('query');
+         }        
     });
     //compose the query
     workflow.on('query', function(){
@@ -463,7 +481,7 @@ exports.hairdresserDeleteBooking = function(req,res,next){
         //query where the  hairdressers who can performed the desired haircuts
         workflow.outcome.query = workflow.outcome.query.where('listOfPerformance').in(workflow.outcome.temp);
         // Using MongoDB's geospatial querying features. (Note how coordinates are set [long, lat]
-        workflow.outcome.query = workflow.outcome.query.where('activityArea.location').near({center:{type:'Point', coordinates:[req.body.longitude, req.body.latitude]},
+        workflow.outcome.query = workflow.outcome.query.where('activityArea.location').near({center:{type:'Point', coordinates:[req.body.longitude==null?workflow.outcome.longitude:req.body.longitude, req.body.latitude==null?workflow.outcome.latitude:req.body.latitude]},
             //distance in meters
             maxDistance:workflow.outcome.distance*1000,spherical:true});
             return workflow.emit('exec');
@@ -497,7 +515,10 @@ exports.hairdresserDeleteBooking = function(req,res,next){
           data={};   
           data.profile_picture = hairdresser.profile_picture;
           data._id = hairdresser._id;
+          data.appointments = hairdresser.appointments;
+          data.customer_type = hairdresser.customer_type;
           data.username = hairdresser.user.name||"default";
+          data.rating = hairdresser.rating;
           hairdresser.activityArea.forEach(function(area){
             var distance = req.app.utility.distance(req.body.longitude, req.body.latitude,area.longitude,area.latitude,'K');
             console.log("computed distance in KM for haidresser  ",(index+1),'-->', distance);

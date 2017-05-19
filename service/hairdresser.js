@@ -717,7 +717,9 @@ var hairdresser = {
         hairdresserPublicInformations.appointments = hairdresser.appointments; 
         hairdresserPublicInformations.customer_type=hairdresser.customer_type; 
         hairdresserPublicInformations.categories= hairdresser.categories; 
-        hairdresserPublicInformations.description = hairdresser.description;   
+        hairdresserPublicInformations.description = hairdresser.description;
+        console.log("description ", hairdresserPublicInformations.description);
+        hairdresserPublicInformations.rating = hairdresser.rating;
         res.json(hairdresserPublicInformations);
   });
 }
