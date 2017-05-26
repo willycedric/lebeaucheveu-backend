@@ -54,16 +54,16 @@ exports.getOne = function(req, res, next) {
  */
 exports.put = function(req, res, next) {
   //console.log(req.user.roles.hairdresser,req.body.user.req.user.roles.hairdresser);
+  console.log("Update haidresser description");
   var workflow = req.app.utility.workflow(req,res);
     workflow.on('patchHairdresser', function(){ 
-      var hairdresser = req.user.roles.hairdresser;      
+      var hairdresser = req.user.roles.hairdresser;  
+      console.log("hairdresser",hairdresser);
       _.merge(hairdresser,req.body.user.hairdresser);
       hairdresser.save(function(err,saved){
           if(err)
             return next(err);
-            workflow.outcome.hairdresser = saved;
-              console.log('list of performance', saved.listOfPerformance);
-            console.log("cover area", saved.activityArea);
+            workflow.outcome.hairdresser = saved;            
             return workflow.emit('patchUser');
         });
     
@@ -76,7 +76,7 @@ exports.put = function(req, res, next) {
         user.save(function(err, saved){
           if(err)
             return next(err);
-          workflow.outcome.user=saved;
+          workflow.outcome.user=saved;          
           return workflow.emit('response');
         });
     });
@@ -84,6 +84,42 @@ exports.put = function(req, res, next) {
    workflow.emit("patchHairdresser");
 };
 
+/**
+ * Update hairdresser description
+ */
+exports.updateDescription = function(req,res,next){   
+  req.app.db.models.Hairdresser.findById(req.user.roles.hairdresser, function(err,hairdresser){
+      if(err)
+        return next(err);
+      if(req.body.description == ""|| req.body.description == undefined){
+        //Do nothing
+      }else{
+        hairdresser.description = req.body.description;
+      }        
+      hairdresser.save(function(err, saved){
+        if(err)
+          return next(err);
+          res.status(202).send();
+      });
+  });
+};
+
+exports.updateArea = function(req,res,next){   
+  req.app.db.models.Hairdresser.findById(req.user.roles.hairdresser, function(err,hairdresser){
+      if(err)
+        return next(err);
+      if(req.body.description == ""|| req.body.description == undefined){
+        //Do nothing
+      }else if(hairdresser.activityArea.indexOf(req.body.description)==-1){
+        hairdresser.activityArea.push(req.body.description);
+      }        
+      hairdresser.save(function(err, saved){
+        if(err)
+          return next(err);
+          res.status(202).send();
+      });
+  });
+};
 
 exports.updatecategory = function(req,res,next){
   
@@ -644,9 +680,7 @@ exports.findHaircutCatalog = function(req, res,next){
  * Populate the hairdresser's activityArea subdocument
  */
 exports.populateCoverArea = function(req,res,next){
-  console.log('inside this function'); 
   var hairdresserId= req.user.roles.hairdresser;
-  console.log(req.user.roles.hairdresser); 
   var workflow = req.app.utility.workflow(req,res);
   workflow.on('validate', function(){
      req.app.db.models.Hairdresser.findById(hairdresserId,function(err,hairdresser){
@@ -658,7 +692,7 @@ exports.populateCoverArea = function(req,res,next){
           }else{
             hairdresser.activityArea.forEach(function(area){
               if(area.hasOwnProperty("formatted_address")){
-                if(area.formatted_address.toUpperCase() == req.body.area.formatted_address.toUpperCase()){
+                if(area.formatted_address.toUpperCase() == req.body.description.formatted_address.toUpperCase()){
                   return res.status(202).json({success:true});
                 }
               }              
@@ -671,7 +705,7 @@ exports.populateCoverArea = function(req,res,next){
   workflow.on('patchArea',function(){
     var hairdresser = workflow.outcome.hairdresser;
     hairdresser.activityArea.push(req.body.area);
-    hairdresser.save(function(err,saveed){
+    hairdresser.save(function(err,saved){
       if(err)
         return next(err);
       res.status(202).json({success:true});

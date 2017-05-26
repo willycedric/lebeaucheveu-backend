@@ -156,7 +156,7 @@ resetPasswordToken:String,
 resetPasswordExpires:Date,
 activityArea:[mongoose.modelSchemas.Area], //Array of area covered by the hairdresser
 rating:{
-  type:Number,
+  type:Number,//0 --> Both men and women , 1 --> Women only, 2 --> Men only
   default:1
 }
 });

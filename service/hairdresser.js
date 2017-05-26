@@ -668,41 +668,26 @@ var hairdresser = {
   },
 
   updatePrefrences:function(req,res,next){
-    //get the hairdresser account from the request object
-   var hairdresser = req.user.roles.hairdresser;
-   //update hairdresser list of performance
-  req.body.user.hairdresser.listOfPerformance.forEach(function(elt,ind){
-      if(hairdresser.listOfPerformance.indexOf(elt)==-1){
-        hairdresser.listOfPerformance.push(elt);
-      }
-  });
-
-  //update the categories subdocuments
-  if(true){//TODO find a way to know if categories udapte are needed
-    hairdresser.categories=[];//delete all the previous categories
-    req.body.user.hairdresser.categories.forEach(function(elt, index){
-      if(hairdresser.categories.indexOf(elt)==-1){
-        console.log('category name',elt);
-          var data = {
-            name: elt
-          }
-          hairdresser.categories.push(data);
-      }
-    });
-  }else{
-    //TODO notify the hairdresser that the maximum numbers of categories allowed is reached
-    //res.json({success:true});
-  }  
-  //update hairdresser customer type
-  hairdresser.customer_type = req.body.user.hairdresser.customer_type;
-  //save the hairdresser account
-  hairdresser.save(function(err,saved){
-    if(err)
-      return next(err);
-      res.json({data:{hairdresser:saved}});
-  })
-
-  //  res.sendStatus(202);
+    //   //get the hairdresser account from the request object
+    var hairdresser = req.user.roles.hairdresser;    
+    if(req.body.data.hasOwnProperty('customer_type')){        
+        hairdresser.customer_type = req.body.data.customer_type;
+    }
+    if(req.body.data.hasOwnProperty("haircutCategory")){  
+        hairdresser.categories=[];    
+        req.body.data.haircutCategory.forEach(function(category){         
+            hairdresser.categories.push({name:category});          
+        });
+    }
+    if(req.body.data.hasOwnProperty("haircutType")){      
+      console.log(JSON.stringify(hairdresser.listOfPerformance ,null,6),JSON.stringify(req.body.data.haircutType,null,6));
+        hairdresser.listOfPerformance = req.body.data.haircutType;
+    }
+    hairdresser.save(function(err, saved){
+      if(err)
+        return next(err);       
+      res.sendStatus(202);
+    });   
   },
   getHairdresserPublicDetails:function(req,res,next){  
   
@@ -717,8 +702,7 @@ var hairdresser = {
         hairdresserPublicInformations.appointments = hairdresser.appointments; 
         hairdresserPublicInformations.customer_type=hairdresser.customer_type; 
         hairdresserPublicInformations.categories= hairdresser.categories; 
-        hairdresserPublicInformations.description = hairdresser.description;
-        console.log("description ", hairdresserPublicInformations.description);
+        hairdresserPublicInformations.description = hairdresser.description;        
         hairdresserPublicInformations.rating = hairdresser.rating;
         res.json(hairdresserPublicInformations);
   });

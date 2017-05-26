@@ -11,6 +11,7 @@ module.exports = function(passport){
 	router.put('/updateappointmentstate', passport.authenticate('hairdresser-jwt'), controller.updateAppointmentState)	
 	router.post('/findHairdressers', controller.findHairdressers);	
 	router.get('/test', controller.getAWeek);
+	router.put('/update/description', passport.authenticate('hairdresser-jwt'),controller.updateDescription);
 	router.get('/catalog/:id',controller.findHaircutCatalog);
 	router.post('/isAvailable',controller.isAvailable);	
 	router.post('/isUsernameAvailable',controller.isUsernameAvailable);
