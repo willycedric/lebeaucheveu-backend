@@ -160,6 +160,7 @@ rating:{
   default:1
 }
 });
+  
   hairdresserSchema.plugin(require('./plugins/pagedFind')); 
   hairdresserSchema.index({ user: 1 });
   hairdresserSchema.index({ 'status.id': 1 });
