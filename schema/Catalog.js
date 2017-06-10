@@ -52,10 +52,8 @@ exports = module.exports = function(app, mongoose) {
     published_At:{
     	type:Date
     },
-    contents:[contentSchema],
-    search:[String]
-
-  });
+    contents:[contentSchema]
+    });
    catalogSchema.plugin(require('./plugins/pagedFind'));
    catalogSchema.index({ 'userCreated.id': 1 });
    catalogSchema.index({ search: 1 });

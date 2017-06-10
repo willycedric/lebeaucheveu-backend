@@ -1,6 +1,21 @@
 'use strict';
 
 exports = module.exports = function(app, mongoose) {
+
+  var entry = new mongoose.Schema({
+  url:{
+    type:String,
+    default:""
+  },
+  createdAt:{
+    type:Date,
+    default:Date.now
+  },
+  published:{
+    type:Boolean,
+    default:true
+  }
+});
   var haircutCatalogSchema = new mongoose.Schema({
     name:{
     type:String,
@@ -12,10 +27,21 @@ exports = module.exports = function(app, mongoose) {
   },
   state:{
     type:Boolean,
-    default:false
-  }
+    default:true
+  },
+  userCreated: {
+    id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    name: { type: String, default: '' },
+    time: { type: Date, default: Date.now }
+  },
+  update_by: {
+      id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      name: { type: String, default: '' },
+      time: { type: Date, default: Date.now }
+    },
+  entries:[entry]
   });
-  //haircutCatalogSchema.plugin(require('./plugins/pagedFind'));
-  //haircutCatalogSchema.set('autoIndex', (app.get('env') === 'development'));
+  haircutCatalogSchema.plugin(require('./plugins/pagedFind'));
+  haircutCatalogSchema.set('autoIndex', (app.get('env') === 'development'));
   app.db.model('HaircutCatalog', haircutCatalogSchema);
 };

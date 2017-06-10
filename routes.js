@@ -18,6 +18,8 @@ var adminCategory = require('./service/admin/category');
 var adminBlog = require('./service/admin/blog');
 var adminBlogCategory = require('./service/admin/blogCategory');
 var adminCatalog = require('./service/admin/catalog');
+var adminHaircutCategory = require('./service/admin/haircut-category');
+var adminHomeGallery = require('./service/admin/homeGallery');
 
 function useAngular(req, res, next){
   res.sendFile(require('path').join(__dirname, './client/dist/index.html'));
@@ -163,7 +165,11 @@ exports = module.exports = function(app, passport) {
   app.get('/api/hairdresser/galery/entries/:id',apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.findGaleryEntries);
   app.delete('/api/hairdresser/galery/entries/:id',apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.deleteGaleryEntries);
   app.put('/api/hairdresser/setting/preference',apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.updatePrefrences);
- app.get('/api/public/hairdresser/:id',hairdresser.getHairdresserPublicDetails);
+  app.get('/api/public/hairdresser/:id',hairdresser.getHairdresserPublicDetails);
+  app.get('/api/public/hairdressers',hairdresser.getLastGaleryEntries);
+  app.get('/api/hairdresser/haircut/categories',hairdresser.getAvailabeHaircutCategories);
+  app.get('/api/hairdresser/haircut/categories/:id', hairdresser.findHaircutCategoryById);
+
 
   
 
@@ -277,6 +283,20 @@ exports = module.exports = function(app, passport) {
   app.get('/api/admin/catalogs/:id', adminCatalog.read);
   app.put('/api/admin/catalogs/:id', adminCatalog.update);
   app.delete('/api/admin/catalogs/:id', adminCatalog.delete);
+
+  //admin > haircut categories  
+  app.get('/api/admin/haircut/categories', adminHaircutCategory.find);
+  app.post('/api/admin/haircut/categories', adminHaircutCategory.create);
+  app.get('/api/admin/haircut/categories/:id', adminHaircutCategory.read);
+  app.put('/api/admin/haircut/categories/:id', adminHaircutCategory.update);
+  app.delete('/api/admin/haircut/categories/:id', adminHaircutCategory.delete);
+ 
+  //admin > home gallery entries 
+  app.get('/api/admin/home/gallery', adminHomeGallery.find);
+  app.post('/api/admin/home/gallery', adminHomeGallery.create);
+  app.get('/api/admin/home/gallery/:id', adminHomeGallery.read);
+  app.put('/api/admin/home/gallery/:id', adminHomeGallery.update);
+  app.delete('/api/admin/home/gallery/:id', adminHomeGallery.delete);
 
   //admin > search
   app.get('/api/admin/search', admin.search);

@@ -698,7 +698,6 @@ exports.hairdresserDeleteBooking = function(req,res,next){
           });
          structuredResult.push(data);
       });
-
     }
     break;
   }

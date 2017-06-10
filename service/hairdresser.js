@@ -592,60 +592,115 @@ var hairdresser = {
   });
   },
   updateGaleryEntry:function(req,res,next){
-    req.app.db.models.Hairdresser.findById(req.user.roles.hairdresser._id, function(err,hairdresser){
-    if(hairdresser){
-      switch(req.body.type){
-        case "url":
-        {
-            if(req.body.url && req.body.categoryId){
-              var galeryEntry ={
-                url:req.body.url,
-                category:req.body.categoryId
-              }
-              hairdresser.gallery_pictures.push(galeryEntry);
-              hairdresser.save(function(err,saved){
-                if(err)
-                  return next(err);
-                else
-                  res.json(saved.gallery_pictures);
-              });
-            }else{
-              throw new Error("The picture url or categoryId is missing.");
-            }
-        }
-        break;
-        case "file":
-        {
-          if(req.body.photo && req.body.categoryId){
-              require('./imageHelper').uploadBase64Image('./upload/'+req.user.roles.hairdresser._id.toString()+"_profile.jpg",req.body.photo,function(err,result){
-            if(err)
-              res.sendStatus(400,err);
-            else{
-                  var galeryEntry = {
-                    url :result.secure_url,
-                    category:req.body.categoryId
-                  };
-                  hairdresser.gallery_pictures.push(galeryEntry);
-                  hairdresser.save(function(err,saved){
-                    if(err)
+    var workflow = req.app.utility.workflow(req,res);
+    //Add the new picture to the corresponding haircut category model
+    workflow.on('addEntry', function(){
+      req.app.db.models.HaircutCatalog.findById(req.body.categoryId, function(err, category){
+        if(err){
+          return next(err);
+        }        
+        switch(req.body.type){
+              case "url":
+              {
+                category.entries.push({url:req.body.url});
+                  category.save(function(err){
+                    if(err){
                       return next(err);
-                    else{                        
-                        res.json(saved.gallery_pictures);
-                    }                    
-                  });
+                    }
+                    workflow.emit('addEntryForHairdresser')
+
+                });                  
               }
-              
-            });
-            }else{
-              throw new Error("The picture file or categoryId is missing.");
+              break;
+              case "file":
+              {
+                if(req.body.photo || req.body.categoryId){
+                    require('./imageHelper').uploadBase64Image('./upload/'+req.user.roles.hairdresser._id.toString()+"_profile.jpg",req.body.photo,function(err,result){
+                  if(err)
+                    res.sendStatus(400,err);
+                  else{                        
+                       category.entries.push({url:result.secure_url});
+                        category.save(function(err){
+                          if(err){
+                            return next(err);
+                          }
+                          workflow.emit('addEntryForHairdresser')
+
+                      });  
+                    }
+                    
+                  });
+                  }else{
+                    throw new Error("The picture file or categoryId is missing.");
+                  }
+              }
+              break;
+              default:
+              throw new Error("The type"+req.body.type+" is not handle by this function.");
+            }          
+        
+      });
+    });
+
+    //add the new pictures to the hairdresser gallery
+    workflow.on('addEntryForHairdresser', function(){
+           req.app.db.models.Hairdresser.findById(req.user.roles.hairdresser._id, function(err,hairdresser){
+          if(hairdresser){
+            switch(req.body.type){
+              case "url":
+              {
+                  if(req.body.url && req.body.categoryId){
+                    var galeryEntry ={
+                      url:req.body.url,
+                      category:req.body.categoryId
+                    }
+                    hairdresser.gallery_pictures.push(galeryEntry);
+                    hairdresser.save(function(err,saved){
+                      if(err)
+                        return next(err);
+                      else
+                        res.json(saved.gallery_pictures);
+                    });
+                  }else{
+                    throw new Error("The picture url or categoryId is missing.");
+                  }
+              }
+              break;
+              case "file":
+              {
+                if(req.body.photo && req.body.categoryId){
+                    require('./imageHelper').uploadBase64Image('./upload/'+req.user.roles.hairdresser._id.toString()+"_profile.jpg",req.body.photo,function(err,result){
+                  if(err)
+                    res.sendStatus(400,err);
+                  else{
+                        var galeryEntry = {
+                          url :result.secure_url,
+                          category:req.body.categoryId
+                        };
+                        hairdresser.gallery_pictures.push(galeryEntry);
+                        hairdresser.save(function(err,saved){
+                          if(err)
+                            return next(err);
+                          else{                        
+                              res.json(saved.gallery_pictures);
+                          }                    
+                        });
+                    }
+                    
+                  });
+                  }else{
+                    throw new Error("The picture file or categoryId is missing.");
+                  }
+              }
+              break;
+              default:
+              throw new Error("The type"+req.body.type+" is not handle by this function.");
             }
-        }
-        break;
-        default:
-        throw new Error("The type"+req.body.type+" is not handle by this function.");
-      }
-    }
-  });
+          }
+        });
+    });
+    workflow.emit('addEntry');
+ 
   },
   findGaleryEntries:function(req,res,next){  
     var galeryEntries = [];
@@ -706,6 +761,53 @@ var hairdresser = {
         hairdresserPublicInformations.rating = hairdresser.rating;
         res.json(hairdresserPublicInformations);
   });
+},
+getLastGaleryEntries: function(req,res,next){
+  console.log('inside this function');
+  req.app.db.models.HaircutCatalog.find({}, function(err, catalogs){
+    if(err){
+      return next(err);
+    }    
+    var listOfAvailableEntries=[];
+    var results = catalogs.filter(function(catalog){
+      //remove all catalogs that have no entriy
+        return catalogs;//.entries.length>0;
+    });       
+    results.map(function(catalog){                 
+        catalog.entries.map(function(entry){
+          if(entry._id && entry.url !=""){ //prevent the admin user to have entry without valid picture url.
+            listOfAvailableEntries.push({
+              name:catalog.name,
+              entry:entry            
+            });
+          }           
+        });   
+    });
+    //console.log("list of available entries",JSON.stringify(listOfAvailableEntries,null,7));
+    res.json(listOfAvailableEntries);
+  })
+},
+getAvailabeHaircutCategories : function(req, res, next){
+ req.app.db.models.HaircutCatalog.pagedFind({
+      filters: "undefined",
+      keys: 'name state entries createdAt',
+      limit: 5,
+      page: 1,
+      sort:'_id'
+    }, function (err, results) {
+      if (err) {
+        return next(err);
+      }
+      res.status(200).json(results);
+    });
+},
+findHaircutCategoryById: function(req, res, next){
+   req.app.db.models.HaircutCatalog.findById(req.params.id).exec(function (err, haircutCategory) {
+      if (err) {
+        return next(err);
+      }
+      res.status(200).json(haircutCategory);
+    });
 }
 
 };
