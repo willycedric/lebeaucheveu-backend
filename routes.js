@@ -20,6 +20,7 @@ var adminBlogCategory = require('./service/admin/blogCategory');
 var adminCatalog = require('./service/admin/catalog');
 var adminHaircutCategory = require('./service/admin/haircut-category');
 var adminHomeGallery = require('./service/admin/homeGallery');
+var adminHaircutStyle = require('./service/admin/haircut-style');
 
 function useAngular(req, res, next){
   res.sendFile(require('path').join(__dirname, './client/dist/index.html'));
@@ -163,11 +164,12 @@ exports = module.exports = function(app, passport) {
   app.get('/api/hairdresser/settings/facebook/disconnect',apiEnsureAuthenticated, apiEnsureHairdresser, hairdresser.disconnectFacebook);
   app.put('/api/hairdresser/upload/galery',apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.updateGaleryEntry);
   app.get('/api/hairdresser/galery/entries/:id',apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.findGaleryEntries);
-  app.delete('/api/hairdresser/galery/entries/:id',apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.deleteGaleryEntries);
+  app.delete('/api/hairdresser/galery/entries/:id/:category',apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.deleteGaleryEntries);
   app.put('/api/hairdresser/setting/preference',apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.updatePrefrences);
   app.get('/api/public/hairdresser/:id',hairdresser.getHairdresserPublicDetails);
   app.get('/api/public/hairdressers',hairdresser.getLastGaleryEntries);
   app.get('/api/hairdresser/haircut/categories',hairdresser.getAvailabeHaircutCategories);
+  app.get('/api/hairdresser/haircut/styles',hairdresser.getAvailabeHaircutStyles);
   app.get('/api/hairdresser/haircut/categories/:id', hairdresser.findHaircutCategoryById);
 
 
@@ -290,6 +292,13 @@ exports = module.exports = function(app, passport) {
   app.get('/api/admin/haircut/categories/:id', adminHaircutCategory.read);
   app.put('/api/admin/haircut/categories/:id', adminHaircutCategory.update);
   app.delete('/api/admin/haircut/categories/:id', adminHaircutCategory.delete);
+
+  //admin > haircut styles     
+  app.get('/api/admin/haircut/styles', adminHaircutStyle.find);
+  app.post('/api/admin/haircut/styles', adminHaircutStyle.create);
+  app.get('/api/admin/haircut/styles/:id', adminHaircutStyle.read);
+  app.put('/api/admin/haircut/styles/:id', adminHaircutStyle.update);
+  app.delete('/api/admin/haircut/styles/:id', adminHaircutStyle.delete);
  
   //admin > home gallery entries 
   app.get('/api/admin/home/gallery', adminHomeGallery.find);

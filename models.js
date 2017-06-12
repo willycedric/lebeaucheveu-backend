@@ -20,4 +20,5 @@ exports = module.exports = function(app, mongoose) {
   require('./schema/Blog')(app,mongoose);
   require('./schema/Catalog')(app,mongoose);
   require('./schema/HomeGalleryEntries')(app, mongoose);
+  require('./schema/HaircutStyle')(app,mongoose);
 };

@@ -594,6 +594,7 @@ var hairdresser = {
   updateGaleryEntry:function(req,res,next){
     var workflow = req.app.utility.workflow(req,res);
     //Add the new picture to the corresponding haircut category model
+    workflow.outcome = {};
     workflow.on('addEntry', function(){
       req.app.db.models.HaircutCatalog.findById(req.body.categoryId, function(err, category){
         if(err){
@@ -603,12 +604,18 @@ var hairdresser = {
               case "url":
               {
                 category.entries.push({url:req.body.url});
-                  category.save(function(err){
+                  category.save(function(err,saved){
                     if(err){
                       return next(err);
                     }
-                    workflow.emit('addEntryForHairdresser')
-
+                    //return the just saved entry to be stored in the hairdresser model/
+                    var tmpMatchingArray = saved.entries.map(function(entry){
+                      return entry.url;
+                    });
+                    var index = tmpMatchingArray.indexOf(req.body.url);
+                    workflow.outcome.saved  = saved.entries[index];                    
+                    console.log("New entry ", JSON.stringify(workflow.outcome.saved, null, 7));                    
+                    workflow.emit('addEntryForHairdresser');
                 });                  
               }
               break;
@@ -620,10 +627,11 @@ var hairdresser = {
                     res.sendStatus(400,err);
                   else{                        
                        category.entries.push({url:result.secure_url});
-                        category.save(function(err){
+                        category.save(function(err,saved){
                           if(err){
                             return next(err);
                           }
+                          workflow.outcome.saved = saved;
                           workflow.emit('addEntryForHairdresser')
 
                       });  
@@ -651,6 +659,7 @@ var hairdresser = {
               {
                   if(req.body.url && req.body.categoryId){
                     var galeryEntry ={
+                      _id:workflow.outcome.saved._id,
                       url:req.body.url,
                       category:req.body.categoryId
                     }
@@ -674,6 +683,7 @@ var hairdresser = {
                     res.sendStatus(400,err);
                   else{
                         var galeryEntry = {
+                          _id:workflow.outcome.saved._id,
                           url :result.secure_url,
                           category:req.body.categoryId
                         };
@@ -712,14 +722,30 @@ var hairdresser = {
     res.json(galeryEntries);
 
   },
-  deleteGaleryEntries:function(req,res,next){
-    var hairdresser=req.user.roles.hairdresser;
-    hairdresser.gallery_pictures.id(req.params.id).published=false;
-    hairdresser.save(function(err,saved){
-      if(err)
-        return next(err);
-        res.sendStatus(200);
+  deleteGaleryEntries:function(req,res,next){    
+    var workflow = req.app.utility.workflow(req, res);    
+    workflow.on('unplusblishEntry', function(){
+      req.app.db.models.HaircutCatalog.findById(req.params.category, function(err, category){
+        if(err)
+          return next(err);          
+           category.entries.id(req.params.id).published = false;//unpublised the content delete by the hairdresser           
+           category.save(function(err){
+             if(err)
+                return next(err);
+                workflow.emit("deleteEntry");
+           });    
+      });
     });
+    workflow.on('deleteEntry', function(){
+      var hairdresser=req.user.roles.hairdresser;
+      hairdresser.gallery_pictures.id(req.params.id).remove();//delete the entry from the hairdresser model
+      hairdresser.save(function(err,saved){
+        if(err)
+          return next(err);
+          res.sendStatus(200);
+      });
+    });
+    workflow.emit('unplusblishEntry');
   },
 
   updatePrefrences:function(req,res,next){
@@ -775,7 +801,7 @@ getLastGaleryEntries: function(req,res,next){
     });       
     results.map(function(catalog){                 
         catalog.entries.map(function(entry){
-          if(entry._id && entry.url !=""){ //prevent the admin user to have entry without valid picture url.
+          if(entry._id && entry.url !="" && entry.published){ //prevent the admin user to have entry without valid picture url.
             listOfAvailableEntries.push({
               name:catalog.name,
               entry:entry            
@@ -807,6 +833,20 @@ findHaircutCategoryById: function(req, res, next){
         return next(err);
       }
       res.status(200).json(haircutCategory);
+    });
+},
+getAvailabeHaircutStyles : function(req, res, next){
+  req.app.db.models.HaircutStyle.pagedFind({
+      filters: "undefined",
+      keys: 'name state',
+      limit: 20,
+      page: 1,
+      sort:'_id'
+    }, function (err, results) {
+      if (err) {
+        return next(err);
+      }
+      res.status(200).json(results);
     });
 }
 

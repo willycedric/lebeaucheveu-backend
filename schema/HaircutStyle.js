@@ -1,14 +1,10 @@
 'use strict';
 
 exports = module.exports = function(app, mongoose) {
-    var entryGallerySchema =  new mongoose.Schema({
-        url:{
+    var haircutStyleSchema =  new mongoose.Schema({
+        name:{
             type:String
-        },
-        createdAt:{
-            type:Date,
-            defautl:Date.now
-        },
+        },        
         state:{
             type:Boolean,
             default:true
@@ -24,8 +20,8 @@ exports = module.exports = function(app, mongoose) {
         time: { type: Date, default: Date.now }
         }      
     });  
-    entryGallerySchema.plugin(require('./plugins/pagedFind'));
-    entryGallerySchema.index({ 'userCreated.id': 1 });    
-    entryGallerySchema.set('autoIndex', (app.get('env') === 'development'));
-    app.db.model('GalleryEntries', entryGallerySchema);
+    haircutStyleSchema.plugin(require('./plugins/pagedFind'));
+    haircutStyleSchema.index({ 'userCreated.id': 1 });    
+    haircutStyleSchema.set('autoIndex', (app.get('env') === 'development'));
+    app.db.model('HaircutStyle', haircutStyleSchema);
 };
