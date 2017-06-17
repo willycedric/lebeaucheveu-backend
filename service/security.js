@@ -447,7 +447,7 @@ var security = {
         }
 
         if (!user) {
-          workflow.outcome.errors.push('Login failed. That is strange.');
+          workflow.outcome.errors.push('Échec de la connexion. C\'est étrange.');
           return workflow.emit('response');
         }
         else {
@@ -643,15 +643,15 @@ var security = {
     console.log("params ", JSON.stringify(req.params, null, 7));
     workflow.on('validate', function() {
       if (!req.body.password) {
-        workflow.outcome.errfor.password = 'required';
+        workflow.outcome.errfor.password = 'requis';
       }
 
       if (!req.body.confirm) {
-        workflow.outcome.errfor.confirm = 'required';
+        workflow.outcome.errfor.confirm = 'requis';
       }
 
       if (req.body.password !== req.body.confirm) {
-        workflow.outcome.errors.push('Passwords do not match.');
+        workflow.outcome.errors.push('les mots de passes ne correspondent pas.');
       }
 
       if (workflow.hasErrors()) {
@@ -672,7 +672,7 @@ var security = {
         }
 
         if (!user) {
-          workflow.outcome.errors.push('Invalid request.');
+          workflow.outcome.errors.push('demande non valide.');
           return workflow.emit('response');
         }
 
@@ -682,7 +682,7 @@ var security = {
           }
 
           if (!isValid) {
-            workflow.outcome.errors.push('Invalid request.');
+            workflow.outcome.errors.push('demande non valide.');
             return workflow.emit('response');
           }
 
