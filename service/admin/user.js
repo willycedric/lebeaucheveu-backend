@@ -2,7 +2,7 @@
 
 // public api
 var user = {
-  find: function (req, res, next) {
+  find: function (req, res, next) {    
     req.query.username = req.query.username ? req.query.username : '';
     req.query.limit = req.query.limit ? parseInt(req.query.limit, null) : 20;
     req.query.page = req.query.page ? parseInt(req.query.page, null) : 1;
@@ -98,6 +98,7 @@ var user = {
   },
 
   read: function(req, res, next){
+    console.log("query headers ",req.originalUrl);
     req.app.db.models.User.findById(req.params.id).populate('roles.admin', 'name.full').populate('roles.account', 'name.full').exec(function(err, user) {
       if (err) {
         return next(err);

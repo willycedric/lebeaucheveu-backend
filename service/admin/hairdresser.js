@@ -33,7 +33,7 @@ var hairdresser = {
 
       req.app.db.models.Hairdresser.pagedFind({
         filters: filters,
-        keys: 'name company phone zip userCreated status',
+        keys: 'name company phone zip userCreated  status',
         limit: req.query.limit,
         page: req.query.page,
         sort: req.query.sort

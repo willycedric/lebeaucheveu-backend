@@ -115,12 +115,7 @@ var bookingSchema = new Schema({
       }
     },
     statusLog: [mongoose.modelSchemas.StatusLog],
-    notes: [mongoose.modelSchemas.Note],
-    userCreated: {
-      id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-      name: { type: String, default: '' },
-      time: { type: Date, default: Date.now }
-    },
+    notes: [mongoose.modelSchemas.Note],   
     search: [String],
     nextbookings:[bookingSchema],
     appointments:[HairdresserAppointmentSchema],

@@ -570,8 +570,8 @@ var security = {
     var workflow = req.app.utility.workflow(req, res);
 
     workflow.on('validate', function() {
-      if (!req.body.email) {
-        workflow.outcome.errfor.email = 'required';
+      if (!req.body.username) {
+        workflow.outcome.errfor.username = 'required';
         return workflow.emit('response');
       }
 
@@ -597,7 +597,7 @@ var security = {
     });
 
     workflow.on('patchUser', function(token, hash) {
-      var conditions = { email: req.body.email.toLowerCase() };
+      var conditions = { username: req.body.username.toLowerCase() };
       var fieldsToSet = {
         resetPasswordToken: hash,
         resetPasswordExpires: Date.now() + 10000000
@@ -606,7 +606,6 @@ var security = {
         if (err) {
           return workflow.emit('exception', err);
         }
-
         if (!user) {
           return workflow.emit('response');
         }
@@ -624,7 +623,7 @@ var security = {
         htmlPath: 'login/forgot/email-html',
         locals: {
           username: user.username,
-          resetLink: req.protocol +'://'+ req.headers.host +'/login/reset/'+ user.email +'/'+ token +'/',
+          resetLink: req.app.config.front.url +'/#!/login/reset/'+ user.username +'/'+ token +'/',
           projectName: req.app.config.projectName
         },
         success: function(message) {
@@ -641,7 +640,7 @@ var security = {
   },
   resetPassword: function(req, res){
     var workflow = req.app.utility.workflow(req, res);
-
+    console.log("params ", JSON.stringify(req.params, null, 7));
     workflow.on('validate', function() {
       if (!req.body.password) {
         workflow.outcome.errfor.password = 'required';
@@ -664,7 +663,7 @@ var security = {
 
     workflow.on('findUser', function() {
       var conditions = {
-        email: req.params.email,
+        username: req.params.username,
         resetPasswordExpires: { $gt: Date.now() }
       };
       req.app.db.models.User.findOne(conditions, function(err, user) {

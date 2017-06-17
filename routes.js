@@ -118,7 +118,7 @@ exports = module.exports = function(app, passport) {
   app.post('/api/signup', security.signup);
   app.post('/api/login', security.login);
   app.post('/api/login/forgot', security.forgotPassword);
-  app.put('/api/login/reset/:email/:token', security.resetPassword);
+  app.put('/api/login/reset/:username/:token', security.resetPassword);
   app.get('/api/login/facebook/callback', security.loginFacebook);
   app.get('/api/login/google/callback', security.loginGoogle);
   app.post('/api/logout', security.logout);

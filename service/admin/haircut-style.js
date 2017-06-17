@@ -22,7 +22,7 @@ var haircutStyle = {
 
       req.app.db.models.HaircutStyle.pagedFind({
         filters: filters,
-        keys: 'name state userCreated createdAt',
+        keys: 'name state userCreated categoryName',
         limit: req.query.limit,
         page: req.query.page,
         sort: req.query.sort
@@ -47,11 +47,11 @@ var haircutStyle = {
   },
 
   create: function(req, res, next){
-    var workflow = req.app.utility.workflow(req, res);
-    console.log(JSON.stringify({name:req.body.name, state:req.body.state}, null, 7));
+    var workflow = req.app.utility.workflow(req, res);    
     workflow.on('createHaircutStyle', function() {       
             var fieldsToSet = {
-                name:req.body.name,       
+                name:req.body.name,
+                categoryName:req.body.categoryName,
                 state:req.body.state,      
                 userCreated: {
                 id: req.user._id,
@@ -62,10 +62,21 @@ var haircutStyle = {
             req.app.db.models.HaircutStyle.create(fieldsToSet, function(err, entry) {
                 if (err) {
                     return workflow.emit('exception', err);
-                }
-                console.log("New entry ", JSON.stringify(entry, null, 7));            
+                }                
+                workflow.entry = entry;          
                 return workflow.emit('response');
             });       
+    });
+    workflow.on('populateCategory', function(){      
+      req.app.db.models.HaircutCatalog
+      .findOne({name:req.body.categoryName.toUpperCase()})
+      .populate('haircutCategory.id')
+      .exec(function(err,entry){
+        if(err)
+          return next(err);
+        console.log("catagory is %s",entry.haircutCategory.id);
+        workflow.emit('response');
+      })
     });
     workflow.emit('createHaircutStyle');
   },
