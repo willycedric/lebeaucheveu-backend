@@ -21,7 +21,6 @@ var adminCatalog = require('./service/admin/catalog');
 var adminHaircutCategory = require('./service/admin/haircut-category');
 var adminHomeGallery = require('./service/admin/homeGallery');
 var adminHaircutStyle = require('./service/admin/haircut-style');
-
 function useAngular(req, res, next){
   res.sendFile(require('path').join(__dirname, './client/dist/index.html'));
 }
@@ -53,50 +52,59 @@ function apiEnsureAccount(req, res, next){
   
 }
 function apiEnsureHairdresser(req, res, next){
-  if(req.method!='OPTIONS'){
-
+  if(req.method!='OPTIONS'){    
     if(req.user.canPlayRoleOf('hairdresser')){
       return next();
     }
     res.status(401).send({errors: ['authorization required']});
   }else{
+    console.log("request user",req.user);
     return next();
   }
 }
 
 function apiEnsureVerifiedAccount(req, res, next){
-  console.log('apiEnsureVerifiedAccount  function is called ');
-  if(!req.app.config.requireAccountVerification){
+  if(req.method!='OPTIONS'){
+    console.log('apiEnsureVerifiedAccount  function is called ');
+    if(!req.app.config.requireAccountVerification){
+      return next();
+    }
+    var test = req.user;
+  
+    req.user.isAccountVerified(function(err, flag){
+      if(err){
+        return next(err);
+      }
+      if(flag){
+        return next();
+      }else{
+        return res.status(401).send({errors: ['verification required']});
+      }
+    });
+  }else{
     return next();
   }
-  var test = req.user;
- 
-  req.user.isAccountVerified(function(err, flag){
-    if(err){
-      return next(err);
-    }
-    if(flag){
-      return next();
-    }else{
-      return res.status(401).send({errors: ['verification required']});
-    }
-  });
 }
 
-function apiEnsureVerifiedHairdresser(req, res, next){
-  if(!req.app.config.requireAccountVerification){
+function apiEnsureVerifiedHairdresser(req, res,next){
+  if(req.method!='OPTIONS'){
+    if(!req.app.config.requireAccountVerification){
+      return next();
+    }
+    console.log("user ",Object.keys(req));  
+    req.user.isHairdresserVerified(function(err, flag){
+      if(err){
+        return next(err);
+      }
+      if(flag){
+        return next();
+      }else{
+        return res.status(401).send({errors: ['verification required']});
+      }
+    });
+  }else{
     return next();
   }
-  req.user.isHairdresserVerified(function(err, flag){
-    if(err){
-      return next(err);
-    }
-    if(flag){
-      return next();
-    }else{
-      return res.status(401).send({errors: ['verification required']});
-    }
-  });
 }
 
 function apiEnsureAdmin(req, res, next){
@@ -153,7 +161,7 @@ exports = module.exports = function(app, passport) {
   app.post('/api/hairdresser/verification', apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.resendVerification);
   app.get('/api/hairdresser/verification/:token/', hairdresser.verify);
   app.put('/api/hairdresser/upload',apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.upload);
-  app.all('/api/hairdresser/settings*',apiEnsureAuthenticated, apiEnsureHairdresser,apiEnsureVerifiedHairdresser);
+  app.all('/api/hairdresser/settings*',apiEnsureAuthenticated,apiEnsureHairdresser,apiEnsureVerifiedHairdresser);
   app.get('/api/hairdresser/settings', apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.getAccountDetails);
   app.put('/api/hairdresser/settings', apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.update);
   app.put('/api/hairdresser/settings/identity',apiEnsureAuthenticated, apiEnsureHairdresser, hairdresser.identity);

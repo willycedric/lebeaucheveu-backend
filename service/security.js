@@ -19,6 +19,26 @@ var filterUser = function (user) {
   return null;
 };
 
+var sendVerificationEmail = function(req, res, options) {
+  req.app.utility.sendmail(req, res, {
+    from: req.app.config.smtp.from.name +' <'+ req.app.config.smtp.from.address +'>',
+    to: options.email,
+    subject: 'Verify Your '+ req.app.config.projectName +' Hairdresser',
+    textPath: 'hairdresser/verification/email-text',
+    htmlPath: 'hairdresser/verification/email-html',
+    locals: {
+      verifyURL: req.protocol +'://'+ req.headers.host +'/hairdresser/verification/' + options.verificationToken,
+      projectName: req.app.config.projectName
+    },
+    success: function() {
+      options.onSuccess();
+    },
+    error: function(err) {
+      options.onError(err);
+    }
+  });
+};
+
 
 var getSocialCallbackUrl = function(hostname, provider){
   return 'http://' + hostname + '/login/' + provider + '/callback';
@@ -268,6 +288,7 @@ var security = {
   
   },
   signup: function(req, res){
+    
     var workflow = req.app.utility.workflow(req, res);
 
     workflow.on('validate', function() {
@@ -389,7 +410,7 @@ var security = {
       });
     });
 
-    workflow.on('createHairdresser', function() {
+    workflow.on('createHairdresser', function() {      
       var fieldsToSet = {
         isVerified: req.app.config.requireAccountVerification ? 'no' : 'yes',
         'name.full': workflow.user.username,
@@ -401,7 +422,6 @@ var security = {
           workflow.user.username
         ]
       };
-
       req.app.db.models.Hairdresser.create(fieldsToSet, function(err, hairdresser) {
         if (err) {
           return workflow.emit('exception', err);

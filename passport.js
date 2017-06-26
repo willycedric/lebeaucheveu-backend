@@ -11,9 +11,6 @@ exports = module.exports = function(app, passport) {
       GoogleStrategy = require('passport-google-oauth').OAuth2Strategy,
       TumblrStrategy = require('passport-tumblr').Strategy;
       var config = require('./config');
-
-
-
 var opts = {};
   opts.jwtFromRequest = ExtractJwt.fromAuthHeader();
  /* opts.jwtFromRequest=function (request) {
@@ -48,8 +45,7 @@ var opts = {};
       }
     });
   }));
-   passport.use('hairdresser-jwt',new JwtStrategy(opts, function(jwt_payload, done) {
-      console.log('Inside the hairdresser passport method',jwt_payload);
+   passport.use('hairdresser-jwt',new JwtStrategy(opts, function(jwt_payload, done) {      
      app.db.models.User.findOne({_id: jwt_payload._id}, function(err, user) {
       if (err) {
         return done(err, false);

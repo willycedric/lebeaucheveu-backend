@@ -4,6 +4,21 @@ var getCallbackUrl = function(hostname, provider){
   return 'http://' + hostname + '/hairdresser/settings/' + provider + '/callback';
 };
 
+var disconnectSocial = function(provider, req, res, next){
+  provider = provider.toLowerCase();
+  var outcome = {};
+  var fieldsToSet = {};
+  fieldsToSet[provider] = { id: undefined };
+  req.app.db.models.User.findByIdAndUpdate(req.user.id, fieldsToSet, function (err, user) {
+    if (err) {
+      outcome.errors = ['error disconnecting user from their '+ provider + ' hairdresser'];
+      outcome.success = false;
+      return res.status(200).json(outcome);
+    }
+    outcome.success = true;
+    return res.status(200).json(outcome);
+  });
+};
 var sendVerificationEmail = function(req, res, options) {
   req.app.utility.sendmail(req, res, {
     from: req.app.config.smtp.from.name +' <'+ req.app.config.smtp.from.address +'>',
@@ -23,23 +38,6 @@ var sendVerificationEmail = function(req, res, options) {
     }
   });
 };
-
-var disconnectSocial = function(provider, req, res, next){
-  provider = provider.toLowerCase();
-  var outcome = {};
-  var fieldsToSet = {};
-  fieldsToSet[provider] = { id: undefined };
-  req.app.db.models.User.findByIdAndUpdate(req.user.id, fieldsToSet, function (err, user) {
-    if (err) {
-      outcome.errors = ['error disconnecting user from their '+ provider + ' hairdresser'];
-      outcome.success = false;
-      return res.status(200).json(outcome);
-    }
-    outcome.success = true;
-    return res.status(200).json(outcome);
-  });
-};
-
 var connectSocial = function(provider, req, res, next){
   provider = provider.toLowerCase();
   var workflow = req.app.utility.workflow(req, res);
@@ -393,6 +391,11 @@ var hairdresser = {
       }
       if (req.user.roles.hairdresser.verificationToken !== '') {
         //token generated already
+        console.log("user mail ", req.user.email);
+        // req.user.roles.hairdresser.verificationToken = "";
+        // req.user.roles.hairdresser.save(function(err, hairdresser){
+        //   console.log("empty token ", hairdresser.verificationToken);
+        // });
         return workflow.emit('response');
       }
 
@@ -423,11 +426,10 @@ var hairdresser = {
         if (err) {
           return workflow.emit('exception', err);
         }
-
-        sendVerificationEmail(req, res, {
+      sendVerificationEmail(req, res, {
           email: req.user.email,
           verificationToken: token,
-          onSuccess: function() {
+           onSuccess: function() {
             return workflow.emit('response');
           },
           onError: function(err) {

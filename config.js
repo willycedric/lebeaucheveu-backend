@@ -14,7 +14,7 @@ exports.loginAttempts = {
   forIpAndUser: 7,
   logExpiration: '20m'
 };
-exports.requireAccountVerification = false;
+exports.requireAccountVerification = true;
 exports.smtp = {
   from: {
     name: process.env.SMTP_FROM_NAME || exports.projectName +' Website',
