@@ -27,8 +27,10 @@ var sendVerificationEmail = function(req, res, options) {
     textPath: 'hairdresser/verification/email-text',
     htmlPath: 'hairdresser/verification/email-html',
     locals: {
-      verifyURL: req.protocol +'://'+ req.headers.host +'/hairdresser/verification/' + options.verificationToken,
-      projectName: req.app.config.projectName
+      verifyURL: req.headers.origin+'/#!' +'/hairdresser/verification/' + options.verificationToken,
+      projectName: req.app.config.projectName,
+      username:options.username,
+      email:options.email
     },
     success: function() {
       options.onSuccess();
@@ -426,61 +428,110 @@ var security = {
         if (err) {
           return workflow.emit('exception', err);
         }
-        //update user with hairdresser
-        workflow.user.roles.hairdresser = hairdresser._id;
+        //update user with hairdresser        
+        workflow.user.roles.hairdresser = hairdresser._id;        
         workflow.user.save(function(err, user) {
           if (err) {
             return workflow.emit('exception', err);
           }
-          workflow.emit('sendWelcomeEmail');
+          workflow.emit('generateTokenOrSkipHairdresser', hairdresser);
         });
       });
     });
 
-    workflow.on('sendWelcomeEmail', function() {
-      req.app.utility.sendmail(req, res, {
-        from: req.app.config.smtp.from.name +' <'+ req.app.config.smtp.from.address +'>',
-        to: req.body.email,
-        subject: 'Your '+ req.app.config.projectName +' Account',
-        textPath: 'signup/email-text',
-        htmlPath: 'signup/email-html',
-        locals: {
-          username: req.body.username,
-          email: req.body.email,
-          loginURL: req.protocol +'://'+ req.headers.host +'/login/',
-          projectName: req.app.config.projectName
-        },
-        success: function(message) {
-          workflow.emit('logUserIn');
-        },
-        error: function(err) {
-          console.log('Error Sending Welcome Email: '+ err);
-          workflow.emit('logUserIn');
+    workflow.on('generateTokenOrSkipHairdresser', function(hairdresser) {       
+      if ( hairdresser.isVerified === 'yes') {
+        workflow.outcome.errors.push('hairdresser already verified');
+        return workflow.emit('response');
+      }
+      if ( hairdresser.verificationToken !== '') {
+        //token generated already        
+        return workflow.emit('response');
+      }
+
+      workflow.emit('generateTokenHairdresser', hairdresser);
+    });
+    workflow.on('generateTokenHairdresser', function(hairdresser) {
+      var crypto = require('crypto');
+      crypto.randomBytes(21, function(err, buf) {
+        if (err) {
+          return next(err);
         }
+
+        var token = buf.toString('hex');
+        req.app.db.models.User.encryptPassword(token, function(err, hash) {
+          if (err) {
+            return next(err);
+          }
+          workflow.emit('patchAccountHairdresser', token, hash, hairdresser);
+        });
       });
     });
 
-    workflow.on('logUserIn', function() {
-      req._passport.instance.authenticate('local', function(err, user, info) {
+    workflow.on('patchAccountHairdresser', function(token, hash, hairdresser) {      
+      hairdresser.verificationToken = hash;
+      hairdresser.save(function(err, saved){
         if (err) {
           return workflow.emit('exception', err);
         }
-
-        if (!user) {
-          workflow.outcome.errors.push('Échec de la connexion. C\'est étrange.');
-          return workflow.emit('response');
-        }
-        else {
-          req.login(user, function(err) {
-            if (err) {
-              return workflow.emit('exception', err);
-            }
-            workflow.outcome.defaultReturnUrl = user.defaultReturnUrl();
-            workflow.emit('response');
-          });
-        }
-      })(req, res);
+      sendVerificationEmail(req, res, {
+          email: req.body.email,
+          verificationToken: token,
+          username:hairdresser.user.name,          
+           onSuccess: function() {
+            return workflow.emit('response');
+          },
+          onError: function(err) {
+            return next(err);
+          }
+        });
+      });
     });
+
+    // workflow.on('sendWelcomeEmail', function() {
+    //   req.app.utility.sendmail(req, res, {
+    //     from: req.app.config.smtp.from.name +' <'+ req.app.config.smtp.from.address +'>',
+    //     to: req.body.email,
+    //     subject: 'Your '+ req.app.config.projectName +' Account',
+    //     textPath: 'signup/email-text',
+    //     htmlPath: 'signup/email-html',
+    //     locals: {
+    //       username: req.body.username,
+    //       email: req.body.email,
+    //       loginURL: req.protocol +'://'+ req.headers.host +'/login/',
+    //       projectName: req.app.config.projectName
+    //     },
+    //     success: function(message) {
+    //       workflow.emit('logUserIn');
+    //     },
+    //     error: function(err) {
+    //       console.log('Error Sending Welcome Email: '+ err);
+    //       workflow.emit('logUserIn');
+    //     }
+    //   });
+    // });
+
+    // workflow.on('logUserIn', function() {
+    //   req._passport.instance.authenticate('local', function(err, user, info) {
+    //     if (err) {
+    //       return workflow.emit('exception', err);
+    //     }
+
+    //     if (!user) {
+    //       workflow.outcome.errors.push('Échec de la connexion. C\'est étrange.');
+    //       return workflow.emit('response');
+    //     }
+    //     else {
+    //       req.login(user, function(err) {
+    //         if (err) {
+    //           return workflow.emit('exception', err);
+    //         }
+    //         workflow.outcome.defaultReturnUrl = user.defaultReturnUrl();
+    //         workflow.emit('response');
+    //       });
+    //     }
+    //   })(req, res);
+    // });
 
     workflow.emit('validate');
   },
