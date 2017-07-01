@@ -535,28 +535,56 @@ var hairdresser = {
   },
   verify: function(req, res, next){
     var outcome = {};
-    req.app.db.models.User.validatePassword(req.params.token, req.user.roles.hairdresser.verificationToken, function(err, isValid) {
-      if (!isValid) {
-        outcome.errors = ['invalid verification token'];
-        outcome.success = false;
-        return res.status(200).json(outcome);
-      }
 
-      var fieldsToSet = { isVerified: 'yes', verificationToken: '' };
-      req.app.db.models.Hairdresser.findByIdAndUpdate(req.user.roles.hairdresser._id, fieldsToSet, function(err, hairdresser) {
-        if (err) {
-          return next(err);
+    var workflow = req.app.utility.workflow(req,res);
+    workflow.on('findHairdresser', function(){
+      req.app.db.models.Hairdresser.find({token:req.params.token}, function(err, hairdresser){
+        console.log('hairdresser ', hairdresser, !hairdresser);
+        if(err){
+          return next(err);   
         }
-        outcome.success = true;
-        outcome.user = {
-          id: req.user._id,
-          email: req.user.email,
-          admin: !!(req.user.roles && req.user.roles.admin),
-          isVerified: true
-        };
-        return res.status(200).json(outcome);
+        if(hairdresser.length<=0){
+            workflow.outcome.errors = ['no hairdresser with this  token or token already verified'];
+            workflow.outcome.success = false;
+            return res.status(200).json(workflow.outcome);
+        }else{
+           workflow.emit('verify', hairdresser[0]);
+        }
+                 
+               
       });
+    });    
+
+    workflow.on('verify', function(hairdresser, verificationToken){      
+        req.app.db.models.User.validatePassword(req.params.token, hairdresser.verificationToken, function(err, isValid) {
+          console.log(isValid);
+          if (!isValid) {
+            workflow.outcome.errors = ['invalid verification token'];
+            workflow.outcome.success = false;
+            return res.status(200).json(workflow.outcome);
+          }
+          console.log('hairdresser password matches');
+          var fieldsToSet = { isVerified: 'yes', verificationToken: '',token:'' };
+         
+          hairdresser.isVerified='yes';
+          hairdresser.verificationToken='',
+          hairdresser.token='';
+          hairdresser.save(function(err, saved){
+          if(err){
+            return next(err);
+          }
+          workflow.outcome.success = true;
+          workflow.outcome.user = {
+            id: saved.user.id,         
+            admin: false,
+            isVerified: true
+          };           
+          return res.status(200).json(workflow.outcome);
+          });
+        });
     });
+    workflow.emit('findHairdresser');
+    
   },
 
   disconnectGoogle: function (req, res, next) {

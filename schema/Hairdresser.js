@@ -96,6 +96,7 @@ var bookingSchema = new Schema({
     },
     isVerified: { type: String, default: '' },
     verificationToken: { type: String, default: '' },
+    token: { type: String, default: '' },
     name: {
       first: { type: String, default: '' },
       middle: { type: String, default: '' },

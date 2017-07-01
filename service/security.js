@@ -203,11 +203,11 @@ var socialLogin = function(provider, req, res, next){
         projectName: req.app.config.projectName
       },
       success: function(message) {
-        console.log("send welcome email success");
+        
         workflow.emit('populateUser');
       },
       error: function(err) {
-        console.log('Error Sending Welcome Email: '+ err);
+        
         workflow.emit('populateUser');
       }
     });
@@ -289,27 +289,26 @@ var security = {
     }
   
   },
-  signup: function(req, res){
+  signup: function(req, res){    
     
     var workflow = req.app.utility.workflow(req, res);
-
     workflow.on('validate', function() {
       if (!req.body.username) {
-        workflow.outcome.errfor.username = 'required';
+        workflow.outcome.errfor.username = 'requis';
       }
       else if (!/^[a-zA-Z0-9\-\_]+$/.test(req.body.username)) {
-        workflow.outcome.errfor.username = 'only use letters, numbers, \'-\', \'_\'';
+        workflow.outcome.errfor.username = 'Utilisez uniquement des lettres, des chiffres, \'-\', \'_\'';
       }
 
       if (!req.body.email) {
         workflow.outcome.errfor.email = 'required';
       }
       else if (!/^[a-zA-Z0-9\-\_\.\+]+@[a-zA-Z0-9\-\_\.]+\.[a-zA-Z0-9\-\_]+$/.test(req.body.email)) {
-        workflow.outcome.errfor.email = 'invalid email format';
+        workflow.outcome.errfor.email = 'Format d\'email invalide';
       }
 
       if (!req.body.password) {
-        workflow.outcome.errfor.password = 'required';
+        workflow.outcome.errfor.password = 'requis';
       }
 
       if (workflow.hasErrors()) {
@@ -326,7 +325,7 @@ var security = {
         }
 
         if (user) {
-          workflow.outcome.errfor.username = 'username already taken';
+          workflow.outcome.errfor.username = 'nom d\'utilisateur déjà utilisé';
           return workflow.emit('response');
         }
 
@@ -341,7 +340,7 @@ var security = {
         }
 
         if (user) {
-          workflow.outcome.errfor.email = 'email already registered';
+          workflow.outcome.errfor.email = 'email déjà utilisé';
           return workflow.emit('response');
         }
 
@@ -470,6 +469,7 @@ var security = {
 
     workflow.on('patchAccountHairdresser', function(token, hash, hairdresser) {      
       hairdresser.verificationToken = hash;
+      hairdresser.token=token;
       hairdresser.save(function(err, saved){
         if (err) {
           return workflow.emit('exception', err);
@@ -711,7 +711,7 @@ var security = {
   },
   resetPassword: function(req, res){
     var workflow = req.app.utility.workflow(req, res);
-    console.log("params ", JSON.stringify(req.params, null, 7));
+    
     workflow.on('validate', function() {
       if (!req.body.password) {
         workflow.outcome.errfor.password = 'requis';
