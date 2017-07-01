@@ -406,7 +406,7 @@ var security = {
           if (err) {
             return workflow.emit('exception', err);
           }
-          workflow.emit('sendWelcomeEmail');
+          workflow.emit('generateTokenOrSkipAccount', account);
         });
       });
     });
@@ -450,6 +450,18 @@ var security = {
 
       workflow.emit('generateTokenHairdresser', hairdresser);
     });
+    workflow.on('generateTokenOrSkipAccount', function(account) {       
+      if ( account.isVerified === 'yes') {
+        workflow.outcome.errors.push('account already verified');
+        return workflow.emit('response');
+      }
+      if ( account.verificationToken !== '') {
+        //token generated already        
+        return workflow.emit('response');
+      }
+
+      workflow.emit('generateTokenAccount', account);
+    });
     workflow.on('generateTokenHairdresser', function(hairdresser) {
       var crypto = require('crypto');
       crypto.randomBytes(21, function(err, buf) {
@@ -463,6 +475,22 @@ var security = {
             return next(err);
           }
           workflow.emit('patchAccountHairdresser', token, hash, hairdresser);
+        });
+      });
+    });
+    workflow.on('generateTokenAccount', function(account) {
+      var crypto = require('crypto');
+      crypto.randomBytes(21, function(err, buf) {
+        if (err) {
+          return next(err);
+        }
+
+        var token = buf.toString('hex');
+        req.app.db.models.User.encryptPassword(token, function(err, hash) {
+          if (err) {
+            return next(err);
+          }
+          workflow.emit('patchAccountAccount', token, hash, account);
         });
       });
     });
@@ -487,51 +515,26 @@ var security = {
         });
       });
     });
-
-    // workflow.on('sendWelcomeEmail', function() {
-    //   req.app.utility.sendmail(req, res, {
-    //     from: req.app.config.smtp.from.name +' <'+ req.app.config.smtp.from.address +'>',
-    //     to: req.body.email,
-    //     subject: 'Your '+ req.app.config.projectName +' Account',
-    //     textPath: 'signup/email-text',
-    //     htmlPath: 'signup/email-html',
-    //     locals: {
-    //       username: req.body.username,
-    //       email: req.body.email,
-    //       loginURL: req.protocol +'://'+ req.headers.host +'/login/',
-    //       projectName: req.app.config.projectName
-    //     },
-    //     success: function(message) {
-    //       workflow.emit('logUserIn');
-    //     },
-    //     error: function(err) {
-    //       console.log('Error Sending Welcome Email: '+ err);
-    //       workflow.emit('logUserIn');
-    //     }
-    //   });
-    // });
-
-    // workflow.on('logUserIn', function() {
-    //   req._passport.instance.authenticate('local', function(err, user, info) {
-    //     if (err) {
-    //       return workflow.emit('exception', err);
-    //     }
-
-    //     if (!user) {
-    //       workflow.outcome.errors.push('Échec de la connexion. C\'est étrange.');
-    //       return workflow.emit('response');
-    //     }
-    //     else {
-    //       req.login(user, function(err) {
-    //         if (err) {
-    //           return workflow.emit('exception', err);
-    //         }
-    //         workflow.outcome.defaultReturnUrl = user.defaultReturnUrl();
-    //         workflow.emit('response');
-    //       });
-    //     }
-    //   })(req, res);
-    // });
+     workflow.on('patchAccountAccount', function(token, hash, account) {      
+      account.verificationToken = hash;
+      account.token=token;
+      account.save(function(err, saved){
+        if (err) {
+          return workflow.emit('exception', err);
+        }
+      sendVerificationEmail(req, res, {
+          email: req.body.email,
+          verificationToken: token,
+          username:account.user.name,          
+           onSuccess: function() {
+            return workflow.emit('response');
+          },
+          onError: function(err) {
+            return next(err);
+          }
+        });
+      });
+    });
 
     workflow.emit('validate');
   },
