@@ -19,26 +19,48 @@ var filterUser = function (user) {
   return null;
 };
 
-var sendVerificationEmail = function(req, res, options) {
-  req.app.utility.sendmail(req, res, {
-    from: req.app.config.smtp.from.name +' <'+ req.app.config.smtp.from.address +'>',
-    to: options.email,
-    subject: 'Verify Your '+ req.app.config.projectName +' Hairdresser',
-    textPath: 'hairdresser/verification/email-text',
-    htmlPath: 'hairdresser/verification/email-html',
-    locals: {
-      verifyURL: req.headers.origin+'/#!' +'/hairdresser/verification/' + options.verificationToken,
-      projectName: req.app.config.projectName,
-      username:options.username,
-      email:options.email
-    },
-    success: function() {
-      options.onSuccess();
-    },
-    error: function(err) {
-      options.onError(err);
-    }
-  });
+var sendVerificationEmail = function(req, res, role,options) {
+  if(role=='hairdresser'){
+      req.app.utility.sendmail(req, res, {
+      from: req.app.config.smtp.from.name +' <'+ req.app.config.smtp.from.address +'>',
+      to: options.email,
+      subject: 'Verify Your '+ req.app.config.projectName +' Hairdresser',
+      textPath: 'hairdresser/verification/email-text',
+      htmlPath: 'hairdresser/verification/email-html',
+      locals: {
+        verifyURL: req.headers.origin+'/#!' +'/hairdresser/verification/' + options.verificationToken,
+        projectName: req.app.config.projectName,
+        username:options.username,
+        email:options.email
+      },
+      success: function() {
+        options.onSuccess();
+      },
+      error: function(err) {
+        options.onError(err);
+      }
+    });
+  }else{
+    req.app.utility.sendmail(req, res, {
+      from: req.app.config.smtp.from.name +' <'+ req.app.config.smtp.from.address +'>',
+      to: options.email,
+      subject: 'Verify Your '+ req.app.config.projectName +' Hairdresser',
+      textPath: 'account/verification/email-text',
+      htmlPath: 'account/verification/email-html',
+      locals: {
+        verifyURL: req.headers.origin+'/#!' +'/account/verification/' + options.verificationToken,
+        projectName: req.app.config.projectName,
+        username:options.username,
+        email:options.email
+      },
+      success: function() {
+        options.onSuccess();
+      },
+      error: function(err) {
+        options.onError(err);
+      }
+    });
+  }
 };
 
 
@@ -502,7 +524,7 @@ var security = {
         if (err) {
           return workflow.emit('exception', err);
         }
-      sendVerificationEmail(req, res, {
+      sendVerificationEmail(req, res, 'hairdresser',{
           email: req.body.email,
           verificationToken: token,
           username:hairdresser.user.name,          
@@ -522,7 +544,7 @@ var security = {
         if (err) {
           return workflow.emit('exception', err);
         }
-      sendVerificationEmail(req, res, {
+      sendVerificationEmail(req, res,'account', {
           email: req.body.email,
           verificationToken: token,
           username:account.user.name,          

@@ -529,34 +529,48 @@ var account = {
 
     workflow.emit('validate');
   },
-  verify: function(req, res, next){
-    var outcome = {};
-    req.app.db.models.User.validatePassword(req.params.token, req.user.roles.account.verificationToken, function(err, isValid) {
-      if (!isValid) {
-        outcome.errors = ['invalid verification token'];
-        outcome.success = false;
-        return res.status(200).json(outcome);
-      }
-
-      var fieldsToSet = { isVerified: 'yes', verificationToken: '' };
-      req.app.db.models.Account.findByIdAndUpdate(req.user.roles.account._id, fieldsToSet, function(err, account) {
-        if (err) {
+  verify: function(req, res, next){    
+    var workflow = req.app.utility.workflow(req, res);
+    workflow.on('findAccount', function(){
+      req.app.db.models.Account.find({token:req.params.token},function(err, accounts){
+        if(err)
+        {
           return next(err);
         }
-        outcome.success = true;
-        outcome.user = {
-          id: req.user._id,
-          email: req.user.email,
-          admin: !!(req.user.roles && req.user.roles.admin),
-          account: !!(req.user.roles && req.user.roles.account),
-          hairdresser:!!(req.user.roles && req.user.roles.hairdresser),
-          isVerified: true
-        };
-        return res.status(200).json(outcome);
+        if(accounts.length<=0){
+          workflow.outcome.errors = ['Le compte est déjà vérifié.'];
+          workflow.outcome.success= false;
+          return res.status(200).json(workflow.outcome);
+        }
+        workflow.emit('verify', accounts[0]);
+      
       });
     });
+    workflow.on('verify', function(account){
+        req.app.db.models.User.validatePassword(req.params.token, account.verificationToken, function(err, isValid) {
+        if (!isValid) {
+          workflow.outcome.errors = ['une erreur s\'est produite lors de la vérification, veuillez recommencer.'];
+          //TODO send a new email with a new valid token to the user??
+          workflow.outcome.success = false;
+          return res.status(200).json(workflow.outcome);
+        }        
+        account.token='';
+        account.verificationToken='';
+        account.isVerified='yes';
+        account.save(function(err, saved){
+          workflow.outcome.user= {
+            id: saved.user.id,
+            admin:false,
+            hairdresser:false,
+            account:true,
+            isVerified:'yes'
+          }
+          return res.status(200).json(workflow.outcome);
+        });
+      });
+    });    
+    workflow.emit('findAccount');
   },
-
   disconnectGoogle: function (req, res, next) {
     return disconnectSocial('google', req, res, next);
   },

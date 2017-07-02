@@ -577,6 +577,8 @@ var hairdresser = {
           workflow.outcome.user = {
             id: saved.user.id,         
             admin: false,
+            account:false,
+            hairdresser:true,
             isVerified: true
           };           
           return res.status(200).json(workflow.outcome);

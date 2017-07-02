@@ -133,7 +133,7 @@ exports = module.exports = function(app, passport) {
   //app.all('/api/account*', apiEnsureAccount);
   app.get('/api/account/verification', apiEnsureAuthenticated,apiEnsureAccount, account.upsertVerification);
   app.post('/api/account/verification',  apiEnsureAuthenticated,apiEnsureAccount,account.resendVerification);
-  app.get('/api/account/verification/:token/', apiEnsureAuthenticated,apiEnsureAccount, account.verify);
+  app.get('/api/account/verification/:token/', account.verify);
   app.all('/api/account/settings*', apiEnsureAuthenticated,apiEnsureAccount, apiEnsureVerifiedAccount);
   app.get('/api/account/settings',  apiEnsureAuthenticated,apiEnsureAccount,account.getAccountDetails);
   app.put('/api/account/settings',  apiEnsureAuthenticated,apiEnsureAccount,account.update);

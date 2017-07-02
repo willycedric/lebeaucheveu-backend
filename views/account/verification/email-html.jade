@@ -1,4 +1,13 @@
-h3 #{projectName} Email Verification
+h3 Welcome to #{projectName}
+p Thanks for signing up. As requested, your account has been created. Here are your login credentials:
+table(border='1', cellpadding='5', cellspacing='0')
+  tr
+    td Username:
+    td #{username}
+  tr
+    td Email:
+    td #{email}
+  tr
 p Your #{projectName} account is nearly ready. Please visit the link below to confirm your email address.
 a(href='#{verifyURL}') #{verifyURL}
 p Note: If you did not sign for a #{projectName} account, don't worry. You can ignore this email.
