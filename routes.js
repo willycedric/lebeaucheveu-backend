@@ -176,6 +176,7 @@ exports = module.exports = function(app, passport) {
   app.get('/api/hairdresser/haircut/categories',hairdresser.getAvailabeHaircutCategories);
   app.get('/api/hairdresser/haircut/styles',hairdresser.getAvailabeHaircutStyles);
   app.get('/api/hairdresser/haircut/categories/:id', hairdresser.findHaircutCategoryById);
+  app.get('/api/public/home/entries', hairdresser.getListOfSelectedEntries);
 
 
   

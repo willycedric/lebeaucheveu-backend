@@ -22,7 +22,13 @@ exports = module.exports = function(app, mongoose) {
         id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         name: { type: String, default: '' },
         time: { type: Date, default: Date.now }
-        }      
+    },
+    hairdresserCreated: {
+        id: { type: mongoose.Schema.Types.ObjectId, ref: 'Hairdresser' },
+        name: { type: String, default: '' },
+        profile_url:{type:String,default:''},
+        time: { type: Date, default: Date.now }
+    }            
     });  
     entryGallerySchema.plugin(require('./plugins/pagedFind'));
     entryGallerySchema.index({ 'userCreated.id': 1 });    

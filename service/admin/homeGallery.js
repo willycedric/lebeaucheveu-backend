@@ -75,15 +75,16 @@ var homeGallery = {
     // });
 
     workflow.on('createBlog', function() {    
-      req.body.map(function(url){
+      req.body.map(function(entry){
             var fieldsToSet = {
-                url:url,       
+                url:entry.url,       
                 state:true,      
                 userCreated: {
                 id: req.user._id,
                 name: req.user.username,
                 time: new Date().toISOString()
-                }
+              },
+              hairdresserCreated:entry.hairdresserCreated
             };
             req.app.db.models.GalleryEntries.create(fieldsToSet, function(err, entry) {
                 if (err) {

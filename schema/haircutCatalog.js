@@ -14,6 +14,12 @@ exports = module.exports = function(app, mongoose) {
   published:{
     type:Boolean,
     default:true
+  },
+  hairdresserCreated: {
+    id: { type: mongoose.Schema.Types.ObjectId, ref: 'Hairdresser' },
+    name: { type: String, default: '' },
+    profile_url:{type:String,default:''},
+    time: { type: Date, default: Date.now }
   }
 });
   var haircutCatalogSchema = new mongoose.Schema({

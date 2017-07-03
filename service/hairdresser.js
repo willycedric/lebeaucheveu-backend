@@ -635,7 +635,15 @@ var hairdresser = {
         switch(req.body.type){
               case "url":
               {
-                category.entries.push({url:req.body.url});
+                var entry = {
+                  url:req.body.url,
+                  hairdresserCreated: {
+                    id: req.user.roles.hairdresser._id,
+                    name: req.user.name,
+                    profile_url:req.user.roles.hairdresser.profile_picture
+                  }
+                };
+                category.entries.push(entry);
                   category.save(function(err,saved){
                     if(err){
                       return next(err);
@@ -657,8 +665,16 @@ var hairdresser = {
                     require('./imageHelper').uploadBase64Image('./upload/'+req.user.roles.hairdresser._id.toString()+"_profile.jpg",req.body.photo,function(err,result){
                   if(err)
                     res.sendStatus(400,err);
-                  else{                        
-                       category.entries.push({url:result.secure_url});
+                  else{                   
+                      var entry = {
+                        url:result.secure_url,
+                        hairdresserCreated: {
+                          id: req.user.roles.hairdresser._id,
+                          name: req.user.username,
+                          profile_url:req.user.roles.hairdresser.profile_picture
+                        }
+                      };                  
+                       category.entries.push(entry);
                         category.save(function(err,saved){
                           if(err){
                             return next(err);
@@ -759,8 +775,14 @@ var hairdresser = {
     workflow.on('unplusblishEntry', function(){
       req.app.db.models.HaircutCatalog.findById(req.params.category, function(err, category){
         if(err)
-          return next(err);          
-           category.entries.id(req.params.id).published = false;//unpublised the content delete by the hairdresser           
+          return next(err);     
+          try{
+              //TODO find a way to fix this part(unpublished a photo entry)
+              category.entries.id(req.params.id).published = false;//unpublised the content delete by the hairdresser           
+          }catch (ex){
+            console.error(ex.toString());
+          } 
+          
            category.save(function(err){
              if(err)
                 return next(err);
@@ -820,8 +842,7 @@ var hairdresser = {
         res.json(hairdresserPublicInformations);
   });
 },
-getLastGaleryEntries: function(req,res,next){
-  console.log('inside this function');
+getLastGaleryEntries: function(req,res,next){  
   req.app.db.models.HaircutCatalog.find({}, function(err, catalogs){
     if(err){
       return next(err);
@@ -833,7 +854,7 @@ getLastGaleryEntries: function(req,res,next){
     });       
     results.map(function(catalog){                 
         catalog.entries.map(function(entry){
-          if(entry._id && entry.url !="" && entry.published){ //prevent the admin user to have entry without valid picture url.
+          if(entry._id && entry.url !="" && entry.published && entry.hairdresserCreated.profile_url){ //prevent the admin user to have entry without valid picture url.
             listOfAvailableEntries.push({
               name:catalog.name,
               entry:entry            
@@ -843,6 +864,14 @@ getLastGaleryEntries: function(req,res,next){
     });
     //console.log("list of available entries",JSON.stringify(listOfAvailableEntries,null,7));
     res.json(listOfAvailableEntries);
+  })
+},
+getListOfSelectedEntries: function(req, res, next){
+  req.app.db.models.GalleryEntries.find({}, function(err, entries){
+    if(err){
+      return next(err);
+    }
+    res.status(202).json(entries);
   })
 },
 getAvailabeHaircutCategories : function(req, res, next){
