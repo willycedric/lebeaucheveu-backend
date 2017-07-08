@@ -43,8 +43,8 @@ exports.sendgrid={
       key:"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"
 };
 exports.front={
-  url:"https://lebeaucheveu.herokuapp.com"
-  //url:"http://localhost:4500"
+  //url:"https://lebeaucheveu.herokuapp.com"
+  url:"http://localhost:4500"
 };
 exports.oauth = {
   twitter: {
