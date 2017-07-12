@@ -7,6 +7,7 @@ var hairdresser = require('./service/hairdresser');
 var blog = require('./service/blog');
 var catalog = require('./service/catalog');
 var blogCategory = require('./service/blogCategory');
+var haircutCatalog = require('./service/haircutCatalog');
 var admin = require('./service/admin/admin');
 var adminUser = require('./service/admin/user');
 var adminAccount = require('./service/admin/account');
@@ -21,6 +22,7 @@ var adminCatalog = require('./service/admin/catalog');
 var adminHaircutCategory = require('./service/admin/haircut-category');
 var adminHomeGallery = require('./service/admin/homeGallery');
 var adminHaircutStyle = require('./service/admin/haircut-style');
+
 function useAngular(req, res, next){
   res.sendFile(require('path').join(__dirname, './client/dist/index.html'));
 }
@@ -195,6 +197,8 @@ exports = module.exports = function(app, passport) {
  //------- Public blog category api --------
  app.get("/api/blog-category", blogCategory.findBlogCategories);
 
+//----- Public Haircut catalog api
+app.get("/api/public/haircut/catalogs", haircutCatalog.read);
 
   //-----athorization required api-----
   app.all('/api/admin*', apiEnsureAuthenticated);
