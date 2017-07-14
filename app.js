@@ -62,6 +62,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 //app.use(csrf({ cookie: { signed: true } }));
+
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", app.config.front.url);
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
@@ -70,32 +71,6 @@ app.use(function(req, res, next) {
   next();
 
 });
-//handle file upload
-/*app.put("/api/hairdresser/upload", function(req,res,next){
-  req.app.db.models.Hairdresser.findById(req.user.roles.hairdresser._id, function(err,hairdresser){
-    if(hairdresser && req.body.photo){
-      imageHelper.uploadBase64Image('./upload/'+req.user.roles.hairdresser._id.toString()+"_profile.jpg",req.body.photo,function(err,result){
-        if(err)
-          res.send(400,err);
-        else{
-          hairdresser.profile_picture = result.secure_url;
-          hairdresser.save(function(err){
-            if(err)
-              return next(err);
-            else
-              res.json(result.secure_url);
-          });
-        }
-      });
-    }
-  });
-});*/
-helmet(app);
-
-/*app.get('/api/hairdresser/upload', function(req,res,next){
-  console.log(req.user);
-  next();
-});*/
 
 //response locals
 app.use(function(req, res, next) {

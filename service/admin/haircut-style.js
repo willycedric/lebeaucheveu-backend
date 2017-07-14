@@ -22,7 +22,7 @@ var haircutStyle = {
 
       req.app.db.models.HaircutStyle.pagedFind({
         filters: filters,
-        keys: 'name state userCreated categoryName',
+        keys: 'name state userCreated price categoryName',
         limit: req.query.limit,
         page: req.query.page,
         sort: req.query.sort
@@ -52,13 +52,17 @@ var haircutStyle = {
             var fieldsToSet = {
                 name:req.body.name,
                 categoryName:req.body.categoryName,
-                state:req.body.state,      
+                state:req.body.state,  
+                price:{
+                  min: req.body.price.min || 0,
+                  max: req.body.price.max || 0
+                },    
                 userCreated: {
                 id: req.user._id,
                 name: req.user.username,
                 time: new Date().toISOString()
                 }
-            };
+         };
             req.app.db.models.HaircutStyle.create(fieldsToSet, function(err, entry) {
                 if (err) {
                     return workflow.emit('exception', err);
@@ -109,10 +113,14 @@ var haircutStyle = {
 
   update: function(req, res, next){
     var workflow = req.app.utility.workflow(req, res);
-    workflow.on('patchGalleryEntry', function() {      
+    workflow.on('patchGalleryEntry', function() {            
       var fieldsToSet = {
         name:req.body.name,
-        state:req.body.state,
+        state:req.body.isPublished,
+        price:{
+          min:req.body.price.min,
+          max:req.body.price.max
+        },
         edited_By: {
           id: req.user._id,
           name: req.user.username,

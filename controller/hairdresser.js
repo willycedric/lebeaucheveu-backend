@@ -538,8 +538,6 @@ exports.hairdresserDeleteBooking = function(req,res,next){
       });
     //relaunch the query after increasing by 5KM until 20KM
     workflow.on('increase', function(){
-     // console.log('inside the increase');
-     // console.log("before distance distance ",workflow.outcome.distance );
         workflow.outcome.distance+=5;
       //  console.log("after distance increase", workflow.outcome.distance);
         if( workflow.outcome.distance >=distanceMax){
@@ -554,10 +552,6 @@ exports.hairdresserDeleteBooking = function(req,res,next){
       workflow.outcome.query.exec(function(err, hairdressers){
       if(err)
         return next(err);
-     // console.log("Number of matching hairdresser(s)",hairdressers.length);
-      // if(hairdressers.length < 1 && workflow.outcome.distance <=distanceMax){        
-      //   return workflow.emit('increase');
-      // }
       if( workflow.outcome.distance <=distanceMax){
           if(workflow.outcome.distance == 5){
             workflow.outcome.resultsByDistance.five = hairdressers;
@@ -582,130 +576,6 @@ exports.hairdresserDeleteBooking = function(req,res,next){
       }    
     });
   });
-//   workflow.on('parseResult',function(hairdressers){
-//     var structuredResult=[];  
-//     console.log("hairdressers ", JSON.stringify(hairdressers, null, 7));
-//     console.log("distance ", workflow.outcome.distance);
-//     switch(req.body.perimeter){
-//       case "Five": 
-//        {
-//          structuredResult=[];  
-//           var data ={};  
-//           workflow.outcome.resultsByDistance.five.forEach(function(hairdresser, index){
-//             data={};   
-//             data.profile_picture = hairdresser.profile_picture;
-//             data._id = hairdresser._id;
-//             data.appointments = hairdresser.appointments;
-//             data.customer_type = hairdresser.customer_type;
-//             data.username = hairdresser.user.name||"default";
-//             data.rating = hairdresser.rating;
-//             hairdresser.activityArea.forEach(function(area){
-//               var distance = req.app.utility.distance(req.body.longitude, req.body.latitude,area.longitude,area.latitude,'K');
-//             // console.log("computed distance in KM for haidresser  ",(index+1),'-->', distance);
-//             if(distance<=5){
-//               data.location = area.formatted_address;
-//             }                   
-//             });
-//           structuredResult.push(data);
-//         })
-//     }       
-//     break;    
-//     case "Ten":
-//     {
-//       structuredResult=[];  
-//       var data ={};  
-//         workflow.outcome.resultsByDistance.ten.forEach(function(hairdresser, index){
-//           data={};   
-//           data.profile_picture = hairdresser.profile_picture;
-//           data._id = hairdresser._id;
-//           data.appointments = hairdresser.appointments;
-//           data.customer_type = hairdresser.customer_type;
-//           data.username = hairdresser.user.name||"default";
-//           data.rating = hairdresser.rating;
-//           hairdresser.activityArea.forEach(function(area){
-//             var distance = req.app.utility.distance(req.body.longitude, req.body.latitude,area.longitude,area.latitude,'K');
-//            // console.log("computed distance in KM for haidresser  ",(index+1),'-->', distance);
-//            if(distance<=10){
-//              data.location = area.formatted_address;
-//            }                   
-//           });
-//          structuredResult.push(data);
-//         });
-//     }
-//     break;
-//     case "Fifteen":
-//     {
-//       structuredResult=[];  
-//       var data ={};  
-//         workflow.outcome.resultsByDistance.fiften.forEach(function(hairdresser, index){
-//           data={};   
-//           data.profile_picture = hairdresser.profile_picture;
-//           data._id = hairdresser._id;
-//           data.appointments = hairdresser.appointments;
-//           data.customer_type = hairdresser.customer_type;
-//           data.username = hairdresser.user.name||"default";
-//           data.rating = hairdresser.rating;
-//           hairdresser.activityArea.forEach(function(area){
-//             var distance = req.app.utility.distance(req.body.longitude, req.body.latitude,area.longitude,area.latitude,'K');
-//            // console.log("computed distance in KM for haidresser  ",(index+1),'-->', distance);
-//            if(distance<=15){
-//              data.location = area.formatted_address;
-//            }                   
-//           });
-//          structuredResult.push(data);
-//       });
-//     }
-//     break;
-//     case "Twenty":
-//     {
-//       structuredResult=[];  
-//       var data ={};  
-//         workflow.outcome.resultsByDistance.twenty.forEach(function(hairdresser, index){
-//           data={};             
-//           data.profile_picture = hairdresser.profile_picture;
-//           data._id = hairdresser._id;
-//           data.appointments = hairdresser.appointments;
-//           data.customer_type = hairdresser.customer_type;
-//           data.username = hairdresser.user.name||"default";
-//           data.rating = hairdresser.rating;
-//           hairdresser.activityArea.forEach(function(area){
-//             var distance = req.app.utility.distance(req.body.longitude, req.body.latitude,area.longitude,area.latitude,'K');
-//            // console.log("computed distance in KM for haidresser  ",(index+1),'-->', distance);
-//            if(distance<=20){
-//              data.location = area.formatted_address;
-//            }                   
-//           });
-//          structuredResult.push(data);
-//       })
-//     }
-//     break;
-//     default:
-//     {
-//       structuredResult=[];  
-//       var data ={};  
-//         workflow.outcome.resultsByDistance.five.forEach(function(hairdresser, index){
-//           data={};   
-//           data.profile_picture = hairdresser.profile_picture;
-//           data._id = hairdresser._id;
-//           data.appointments = hairdresser.appointments;
-//           data.customer_type = hairdresser.customer_type;
-//           data.username = hairdresser.user.name||"default";
-//           data.rating = hairdresser.rating;
-//           hairdresser.activityArea.forEach(function(area){
-//             var distance = req.app.utility.distance(req.body.longitude, req.body.latitude,area.longitude,area.latitude,'K');
-//            // console.log("computed distance in KM for haidresser  ",(index+1),'-->', distance);
-//            if(distance<=workflow.outcome.distance){
-//              data.location = area.formatted_address;
-//            }                   
-//           });
-//          structuredResult.push(data);
-//       });
-//     }
-//     break;
-//   }
-//   //console.log("Length of the structured result(s) ",structuredResult.length,JSON.stringify(workflow.outcome.resultNumbers,null,10));
-//   res.json({structuredResult:structuredResult,resultNumbers:workflow.outcome.resultNumbers});  
-// })
 
   workflow.on('parseResult',function(hairdressers){
     var structuredResults = [];

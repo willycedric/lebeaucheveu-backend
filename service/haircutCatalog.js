@@ -13,6 +13,7 @@ var haircutCatalog = {
     });
         res.status(200).json(outcome);
     });   
-  }  
+  }
+
 };
 module.exports =haircutCatalog;

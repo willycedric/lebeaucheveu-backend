@@ -1,6 +1,16 @@
 'use strict';
 
 exports = module.exports = function(app, mongoose) {
+    var haircutPriceSchema =  new mongoose.Schema({
+        min:{
+            type:Number,
+            required:true
+        },
+        max:{
+            type:Number,
+            required:true
+        }
+    });  
     var haircutStyleSchema =  new mongoose.Schema({
         name:{
             type:String
@@ -20,6 +30,7 @@ exports = module.exports = function(app, mongoose) {
             name: { type: String, default: '' },
             time: { type: Date, default: Date.now }
         },
+        price:haircutPriceSchema,
         edited_By: {
         id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         name: { type: String, default: '' },
