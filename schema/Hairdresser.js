@@ -15,6 +15,17 @@ var NotificationSchema = new Schema ({
     read:{type:Boolean, default:false}
 });
 
+var performanceEntry = new Schema({
+  name:{
+    type:String,
+    required:true
+  },
+  price:{
+    type:Number,
+    required:true
+  }
+});
+
 //Hairdresser appointmentSchema;
 var HairdresserAppointmentSchema = new Schema({   
   slotTime:{ //appointment hours (in the hairdresser's opening hour list)
@@ -121,7 +132,7 @@ var bookingSchema = new Schema({
     nextbookings:[bookingSchema],
     appointments:[HairdresserAppointmentSchema],
     notifications:[NotificationSchema],
-   listOfPerformance:[String],
+   listOfPerformance:[performanceEntry],
     profile_picture:{
       type:String,
       default:""
