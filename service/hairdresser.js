@@ -4,6 +4,13 @@ var getCallbackUrl = function(hostname, provider){
   return 'http://' + hostname + '/hairdresser/settings/' + provider + '/callback';
 };
 
+Array.prototype.indexOfObject = function (property, value) {
+			for (var i = 0, len = this.length; i < len; i++) {
+				if (this[i][property] === value) return i;
+			}
+				return -1;
+}
+
 var disconnectSocial = function(provider, req, res, next){
   provider = provider.toLowerCase();
   var outcome = {};
@@ -814,9 +821,15 @@ var hairdresser = {
             hairdresser.categories.push({name:category});          
         });
     }
-    if(req.body.data.hasOwnProperty("haircutType")){      
-      console.log(JSON.stringify(hairdresser.listOfPerformance ,null,6),JSON.stringify(req.body.data.haircutType,null,6));
-        hairdresser.listOfPerformance = req.body.data.haircutType;
+    if(req.body.data.hasOwnProperty("prices")){          
+        req.body.data.prices.forEach(function(entry){
+          var index = hairdresser.listOfPerformance.indexOfObject('name', entry.name);
+          if(index >=0){
+            hairdresser.listOfPerformance[index].price = entry.price;             
+          }else{
+            hairdresser.listOfPerformance.push(entry);
+          }
+        });        
     }
     hairdresser.save(function(err, saved){
       if(err)
@@ -899,7 +912,7 @@ findHaircutCategoryById: function(req, res, next){
 getAvailabeHaircutStyles : function(req, res, next){
   req.app.db.models.HaircutStyle.pagedFind({
       filters: "undefined",
-      keys: 'name state',
+      keys: 'name state price',
       limit: 20,
       page: 1,
       sort:'_id'
