@@ -808,7 +808,16 @@ var hairdresser = {
     });
     workflow.emit('unplusblishEntry');
   },
-
+  updateDescription:function(req, res, next){
+    var hairdresser = req.user.roles.hairdresser;
+    hairdresser.description = req.body.description;
+    hairdresser.save(function(err, saved){
+      if(err){
+        return next(err);
+      }
+      res.sendStatus(202);
+    })
+  },
   updatePrefrences:function(req,res,next){
     //   //get the hairdresser account from the request object
     var hairdresser = req.user.roles.hairdresser;    
@@ -831,6 +840,17 @@ var hairdresser = {
           }
         });        
     }
+    var tempArray =[];
+    if(req.body.data.hasOwnProperty('haircutType')){      
+        tempArray = hairdresser.listOfPerformance.filter(function(entry){
+         if(req.body.data.haircutType.indexOf(entry.name)<0){
+            return false;
+          }else{
+            return true;
+          }
+        });      
+    }   
+    hairdresser.listOfPerformance = tempArray;
     hairdresser.save(function(err, saved){
       if(err)
         return next(err);       

@@ -163,6 +163,7 @@ exports = module.exports = function(app, passport) {
   app.all('/api/hairdresser/settings*',apiEnsureAuthenticated,apiEnsureHairdresser,apiEnsureVerifiedHairdresser);
   app.get('/api/hairdresser/settings', apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.getAccountDetails);
   app.put('/api/hairdresser/settings', apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.update);
+  app.put('/api/hairdresser/update/description', apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.updateDescription);
   app.put('/api/hairdresser/settings/identity',apiEnsureAuthenticated, apiEnsureHairdresser, hairdresser.identity);
   app.put('/api/hairdresser/settings/password', apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.password);
   app.get('/api/hairdresser/settings/google/callback', apiEnsureAuthenticated, apiEnsureHairdresser,hairdresser.connectGoogle);

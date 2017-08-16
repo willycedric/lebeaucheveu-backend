@@ -18,11 +18,11 @@ var NotificationSchema = new Schema ({
 var performanceEntry = new Schema({
   name:{
     type:String,
-    required:true
+    default:""
   },
   price:{
     type:Number,
-    required:true
+    default:""
   }
 });
 
@@ -153,7 +153,7 @@ var bookingSchema = new Schema({
     exp_year:Number,
   },
   gallery_pictures:[galeryEnter],
-  customer_type:{
+  customer_type:{//0 --> Mixte, 1 --> Femme, 2--> Homme
     type:Number,
     min:0,
   max:2,
