@@ -1,9 +1,9 @@
 'use strict';
-
-exports.hostname = process.env.hostname || 'http://localhost:4500';//https://lebeaucheveu-api.herokuapp.com';
+//'mongodb://localhost:27017/lebeaucheveu'//
+exports.hostname = process.env.hostname || "https://lebeaucheveu-api.herokuapp.com";//'http://localhost:4500';
 exports.port = process.env.PORT || 3500;
 exports.mongodb = {
-  uri: process.env.MONGOLAB_URI || process.env.MONGOHQ_URL ||'mongodb://localhost:27017/lebeaucheveu'// 'mongodb://heroku_qlb97506:revb8a0g8nj70fvsiki639lah0@ds049496.mlab.com:49496/heroku_qlb97506'
+  uri: process.env.MONGOLAB_URI || process.env.MONGOHQ_URL || 'mongodb://heroku_qlb97506:revb8a0g8nj70fvsiki639lah0@ds049496.mlab.com:49496/heroku_qlb97506'
 };
 exports.companyName = 'LeBeauCheveu';
 exports.projectName = 'lebeaucheveu';
