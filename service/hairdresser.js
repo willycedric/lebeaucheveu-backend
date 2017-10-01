@@ -857,22 +857,27 @@ var hairdresser = {
       res.sendStatus(202);
     });   
   },
-  getHairdresserPublicDetails:function(req,res,next){  
-  
-  req.app.db.models.Hairdresser.findById(req.params.id, function(err, hairdresser){
-      if(err){       
-         return next(err);
-      }       
-        var hairdresserPublicInformations={};
-        hairdresserPublicInformations.profile_picture = hairdresser.profile_picture;
-        hairdresserPublicInformations.gallery_pictures = hairdresser.gallery_pictures;
-        hairdresserPublicInformations.name = hairdresser.user.name;
-        hairdresserPublicInformations.appointments = hairdresser.appointments; 
-        hairdresserPublicInformations.customer_type=hairdresser.customer_type; 
-        hairdresserPublicInformations.categories= hairdresser.categories; 
-        hairdresserPublicInformations.description = hairdresser.description;        
-        hairdresserPublicInformations.rating = hairdresser.rating;
-        res.json(hairdresserPublicInformations);
+  getHairdresserPublicDetails:function(req,res,next){    
+    req.app.db.models.Hairdresser.findById(req.params.id, function(err, hairdresser){
+        if(err){       
+          return next(err);
+        }       
+    var hairdresserPublicInformations={};
+    hairdresserPublicInformations.profile_picture = hairdresser.profile_picture;
+    hairdresserPublicInformations.gallery_pictures = hairdresser.gallery_pictures;
+    hairdresserPublicInformations.name = hairdresser.user.name;
+    hairdresserPublicInformations.appointments = hairdresser.appointments; 
+    hairdresserPublicInformations.customer_type=hairdresser.customer_type; 
+    hairdresserPublicInformations.categories= hairdresser.categories; 
+    hairdresserPublicInformations.description = hairdresser.description;        
+    hairdresserPublicInformations.rating = hairdresser.rating;
+    hairdresserPublicInformations.listOfPerformances = [];
+    hairdresser.listOfPerformance.map(function(performance){         
+      if(performance.price != null){           
+        hairdresserPublicInformations.listOfPerformances.push(performance);
+      }
+    });         
+    res.json(hairdresserPublicInformations);
   });
 },
 getLastGaleryEntries: function(req,res,next){  
