@@ -36,7 +36,7 @@ exports.webToken = {
   // 10 days in minutes
   expireTime: 24 * 60 * 10,
   secrets: {
-    jwt: process.env.JWT || 'M54H8YFGUI0QS4BSHBDJTC3RJ6LS4ZC30V7P1KKFC3EZBRK1T5DGQB20MQT8RVFZIQG5XL6YVWQBASNP2OZ8ICT4D3ZB25NYMRY9'
+    jwt: process.env.JWT || ''
   }
 };
 exports.sendgrid={
@@ -62,7 +62,7 @@ exports.oauth = {
     secret: process.env.GITHUB_OAUTH_SECRET || ''
   },
   google: {
-    key: process.env.GOOGLE_OAUTH_KEY || 'AIzaSyBhCRyAbEtHG-O98Qywo9ft2FUtL8qzwBo',
+    key: process.env.GOOGLE_OAUTH_KEY || '',
     secret: process.env.GOOGLE_OAUTH_SECRET || ''
   },
   tumblr: {
