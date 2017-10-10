@@ -40,7 +40,7 @@ exports.webToken = {
   }
 };
 exports.sendgrid={
-      key:"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"
+      key:""
 };
 exports.front={
   url:"https://lebeaucheveu.herokuapp.com"
